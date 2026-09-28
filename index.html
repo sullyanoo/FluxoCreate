@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Criador Dinâmico de Fluxogramas ColmeIA</title>
+  <link rel="stylesheet" href="flowchart.css">
+</head>
+<body>
+
+  <!-- Barra Superior de Controle -->
+  <header class="bar">
+    <div class="brand">
+      <span class="logo-icon">🐝</span>
+      <h1>Criador de Fluxogramas ColmeIA</h1>
+    </div>
+    <div class="actions">
+        <button type="button" class="btn-danger-text" onclick="clearAllNodes()">🗑️ Limpar Tudo</button>
+        <button type="button" id="import-btn">📂 Carregar Rascunho</button>
+        <button type="button" id="export-json-btn">💾 Baixar JSON</button>
+        <button type="button" id="save-html-btn" class="primary">⚡ Baixar HTML Pronto</button>
+        <button type="button" id="print-btn">🖨️ Imprimir / PDF</button>
+        <button type="button" id="ajuda-btn" onclick="window.open('ajuda.html', '_blank')">❓ Ajuda</button>
+    </div>
+
+  </header>
+
+  <!-- Janela Principal Dividida -->
+  <div class="app-layout">
+    
+    <!-- Painel Lateral: Editor Estrutural -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Estrutura do Fluxo</h2>
+        <p class="help-text">Monte seu fluxo adicionando blocos na raiz ou nos ramos das decisões.</p>
+      </div>
+
+      <!-- Barra Rápida de Inserção na Raiz -->
+      <div class="quick-add-bar">
+        <span class="quick-add-title">➕ Adicionar na Raiz:</span>
+        <div class="quick-buttons">
+          <button type="button" class="btn-node btn-start" onclick="addNodeToRoot('start')">Root</button>
+          <button type="button" class="btn-node btn-msg" onclick="addNodeToRoot('msg')">Fraseologia</button>
+          <button type="button" class="btn-node btn-decision" onclick="addNodeToRoot('decision')">Decisão</button>
+          <button type="button" class="btn-node btn-api" onclick="addNodeToRoot('api')">API</button>
+          <button type="button" class="btn-node btn-end" onclick="addNodeToRoot('end')">Fim do Bot</button>
+          <button type="button" class="btn-node btn-data" onclick="addNodeToRoot('data')">Base Dados</button>
+          <button type="button" class="btn-node btn-function" onclick="addNodeToRoot('function')">Função</button>
+          <button type="button" class="btn-node btn-metadado" onclick="addNodeToRoot('metadado')">Metadado</button>
+          <button type="button" class="btn-node btn-menu" onclick="addNodeToRoot('menu')">Item de Menu</button>
+          <button type="button" class="btn-node btn-forms" onclick="addNodeToRoot('forms')">ColmeIA Forms</button>
+          <button type="button" class="btn-node btn-validation" onclick="addNodeToRoot('validation')">Validação</button>
+          <button type="button" class="btn-node btn-human" onclick="addNodeToRoot('human')">Atendimento Humano</button>
+          <button type="button" class="btn-node btn-hub" onclick="addNodeToRoot('hub')">Decision Hub</button>
+          <button type="button" class="btn-node btn-journey" onclick="addNodeToRoot('jorney')">Próxima Jornada</button>
+        </div>
+      </div>
+
+      <!-- Lista de Cards Editor (Árvore) -->
+      <div id="tree-editor" class="tree-editor">
+        <!-- Renderizado dinamicamente via JavaScript -->
+      </div>
+    </aside>
+
+    <!-- Canvas de Visualização em Tempo Real -->
+    <main class="canvas-viewport">
+      <div class="wrap">
+        <div class="stage" id="flowchart-canvas">
+          <!-- O fluxo visual é montado aqui -->
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <input type="file" id="import-file" accept=".json" style="display: none;">
+
+  <!-- Script do Motor do Editor -->
+  <script>
+    // Recupera dados automáticos do LocalStorage para não perder as alterações ao atualizar
+    let flowTree = JSON.parse(localStorage.getItem('colmeia_flow_save')) || [
+      {
+        id: "node_1",
+        type: "start",
+        title: "Root",
+        text: "Disparo de fluxo de entrada da ColmeIA"
+      },
+      {
+        id: "node_2",
+        type: "msg",
+        title: "Fraseologia Inicial",
+        text: "Olá! Como posso te ajudar hoje?"
+      },
+      {
+        id: "node_3",
+        type: "decision",
+        title: "Decisão do Usuário",
+        text: "O cliente deseja atendimento de vagas?",
+        branches: [
+          {
+            id: "b_sim",
+            label: "Sim",
+            children: [
+              {
+                id: "node_3_1",
+                type: "api",
+                title: "INTEGRAÇÃO API",
+                text: "GET /api/v1/vagas-disponiveis"
+              },
+              {
+                id: "node_3_2",
+                type: "end",
+                title: "Fim do Bot",
+                text: "Encaminhado com sucesso."
+              }
+            ]
+          },
+          {
+            id: "b_nao",
+            label: "Não",
+            children: [
+              {
+                id: "node_3_3",
+                type: "human",
+                title: "Atendimento Humano",
+                text: "Transferindo para a fila de suporte humano..."
+              }
+            ]
+          }
+        ]
+      }
+    ];
+
+    const treeEditorEl = document.getElementById('tree-editor');
+    const flowchartCanvasEl = document.getElementById('flowchart-canvas');
+
+    // Inicialização da aplicação
+    function init() {
+      renderEditor();
+      renderCanvas();
+    }
+
+    // Grava o estado atual no navegador em tempo de execução
+    function autoSave() {
+      localStorage.setItem('colmeia_flow_save', JSON.stringify(flowTree));
+    }
+
+    // ==========================================
+    // 1. RENDERIZAÇÃO DO EDITOR (PAINEL LATERAL)
+    // ==========================================
+    function renderEditor() {
+      autoSave();
+      treeEditorEl.innerHTML = '';
+
+      // Trata Estado Vazio (Criar do zero)
+      if (!flowTree || flowTree.length === 0) {
+        treeEditorEl.innerHTML = `
+          <div class="empty-state-editor">
+            <span class="empty-icon">🌱</span>
+            <h3>Fluxo Vazio</h3>
+            <p>Seu fluxo está limpo. Escolha qualquer bloco acima no menu para começar seu projeto do zero!</p>
+            <div class="empty-actions">
+              <button type="button" class="btn-node btn-start" onclick="addNodeToRoot('start')">Começar com Root</button>
+              <button type="button" class="btn-node btn-msg" onclick="addNodeToRoot('msg')">Começar com Fraseologia</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      renderEditorNodeList(flowTree, treeEditorEl);
+    }
+
+    function renderEditorNodeList(nodes, containerEl) {
+      nodes.forEach((node, index) => {
+        const card = document.createElement('div');
+        card.className = `editor-card card-${node.type}`;
+        
+        card.innerHTML = `
+          <div class="card-header">
+            <span class="badge badge-${node.type}">${node.type === 'start' ? 'ROOT' : node.type.toUpperCase()}</span>
+            <div class="card-tools">
+              ${index > 0 ? `<button type="button" title="Subir" onclick="moveNode('${node.id}', -1)">⬆️</button>` : ''}
+              ${index < nodes.length - 1 ? `<button type="button" title="Descer" onclick="moveNode('${node.id}', 1)">⬇️</button>` : ''}
+              <button type="button" title="Excluir Bloco" onclick="deleteNode('${node.id}')">🗑️</button>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Título / Rótulo</label>
+            <input type="text" value="${escapeHtml(node.title || '')}" oninput="updateField('${node.id}', 'title', this.value)">
+          </div>
+          <div class="form-field">
+            <label>Conteúdo / Descrição</label>
+            <textarea rows="2" oninput="updateField('${node.id}', 'text', this.value)">${escapeHtml(node.text || '')}</textarea>
+          </div>
+        `;
+
+        // Se for Decisão, renderiza as opções de caminhos laterais
+        if (node.type === 'decision' && node.branches) {
+          const branchesContainer = document.createElement('div');
+          branchesContainer.className = 'branches-editor';
+          
+          const branchesHeader = document.createElement('div');
+          branchesHeader.className = 'branches-title';
+          branchesHeader.innerHTML = `
+            <span>Ramos / Caminhos da Decisão:</span>
+            <button type="button" class="btn-xs" onclick="addBranch('${node.id}')">➕ Novo Ramo</button>
+          `;
+          branchesContainer.appendChild(branchesHeader);
+
+          node.branches.forEach((branch) => {
+            const branchBox = document.createElement('div');
+            branchBox.className = 'branch-box';
+            
+            branchBox.innerHTML = `
+              <div class="branch-box-header">
+                <span class="branch-tag-pill">Caminho:</span>
+                <input type="text" value="${escapeHtml(branch.label)}" oninput="updateBranchLabel('${node.id}', '${branch.id}', this.value)">
+                ${node.branches.length > 1 ? `<button type="button" class="delete-branch-btn" title="Excluir caminho" onclick="deleteBranch('${node.id}', '${branch.id}')">❌</button>` : ''}
+              </div>
+              <div class="branch-children" id="branch-container-${branch.id}"></div>
+              
+              <!-- Seletor Rápido de Nós Dentro do Caminho de Decisão -->
+              <div class="branch-quick-add">
+                <span class="quick-add-sub">Adicionar neste lado:</span>
+                <div class="quick-buttons-sm">
+                  <button type="button" class="btn-sm btn-msg" onclick="addNodeToBranch('${branch.id}', 'msg')">+ Fraseologia</button>
+                  <button type="button" class="btn-sm btn-api" onclick="addNodeToBranch('${branch.id}', 'api')">+ API</button>
+                  <button type="button" class="btn-sm btn-decision" onclick="addNodeToBranch('${branch.id}', 'decision')">+ Decisão</button>
+                  <button type="button" class="btn-sm btn-end" onclick="addNodeToBranch('${branch.id}', 'end')">+ Fim do Bot</button>
+                  <button type="button" class="btn-sm btn-data" onclick="addNodeToBranch('${branch.id}', 'data')">+ Base Dados</button>
+                  <button type="button" class="btn-sm btn-function" onclick="addNodeToBranch('${branch.id}', 'function')">+ Função </button>
+                  <button type="button" class="btn-sm btn-metadado" onclick="addNodeToBranch('${branch.id}', 'metadado')">+ Metadado</button>
+                  <button type="button" class="btn-sm btn-menu" onclick="addNodeToBranch('${branch.id}', 'menu')">+ Item Menu</button>
+                  <button type="button" class="btn-sm btn-forms" onclick="addNodeToBranch('${branch.id}', 'forms')">+ ColmeIA Forms</button>
+                  <button type="button" class="btn-sm btn-validation" onclick="addNodeToBranch('${branch.id}', 'validation')">+ Validação</button>
+                  <button type="button" class="btn-sm btn-human" onclick="addNodeToBranch('${branch.id}', 'human')">+ Atend. Humano</button>
+                  <button type="button" class="btn-sm btn-hub" onclick="addNodeToBranch('${branch.id}', 'hub')">+ Decision Hub</button>
+                  <button type="button" class="btn-sm btn-journey" onclick="addNodeToBranch('${branch.id}', 'journey')">+ Próxima Jornada</button>
+                </div>
+              </div>
+            `;
+
+            branchesContainer.appendChild(branchBox);
+
+            // Renderiza nós filhos recursivamente dentro deste lado do ramo
+            const childrenContainer = branchBox.querySelector(`#branch-container-${branch.id}`);
+            renderEditorNodeList(branch.children || [], childrenContainer);
+          });
+
+          card.appendChild(branchesContainer);
+        }
+
+        containerEl.appendChild(card);
+      });
+    }
+
+    // 2. RENDERIZAÇÃO VISUAL (CANVAS COLMEIA)
+    function renderCanvas() {
+      autoSave();
+      flowchartCanvasEl.innerHTML = '';
+
+      if (!flowTree || flowTree.length === 0) {
+        flowchartCanvasEl.innerHTML = `
+          <div class="empty-canvas-notice">
+            <span class="empty-icon-large">🗺️</span>
+            <h3>Seu fluxograma está vazio</h3>
+            <p>Adicione blocos através do menu lateral esquerdo para começar a desenhar seu fluxo em tempo real!</p>
+          </div>
+        `;
+        return;
+      }
+
+      renderVisualNodeList(flowTree, flowchartCanvasEl);
+    }
+
+    function renderVisualNodeList(nodes, containerEl) {
+      nodes.forEach((node, idx) => {
+        if (node.type === 'decision') {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'fork-group-wrapper';
+
+          // Nó de Decisão (Losango)
+          const decisionNode = document.createElement('div');
+          decisionNode.className = 'node decision';
+          decisionNode.innerHTML = `<strong>${escapeHtml(node.title)}</strong><p>${escapeHtml(node.text)}</p>`;
+          wrapper.appendChild(decisionNode);
+
+          // Fork com as colunas laterais
+          if (node.branches && node.branches.length > 0) {
+            const link = document.createElement('div');
+            link.className = 'link';
+            wrapper.appendChild(link);
+
+            const forkEl = document.createElement('div');
+            forkEl.className = 'fork';
+
+            // Barra horizontal calculada dinamicamente com base nas colunas existentes
+            const count = node.branches.length;
+            const barWidthPercent = count > 1 ? ((count - 1) / count) * 100 : 0;
+            forkEl.innerHTML = `<div class="bar-h" style="width: ${barWidthPercent}%;"></div>`;
+
+            const colsEl = document.createElement('div');
+            colsEl.className = 'cols';
+
+            node.branches.forEach(branch => {
+              const colEl = document.createElement('div');
+              colEl.className = 'col';
+
+              // Rótulo da decisão
+              const tagEl = document.createElement('div');
+              tagEl.className = 'tag';
+              tagEl.textContent = branch.label || 'Caminho';
+              colEl.appendChild(tagEl);
+
+              const subLink = document.createElement('div');
+              subLink.className = 'link';
+              colEl.appendChild(subLink);
+
+              // Renderiza os nós sequenciais deste ramo específico (lado)
+              if (branch.children && branch.children.length > 0) {
+                renderVisualNodeList(branch.children, colEl);
+              } else {
+                const emptyBranchPlaceholder = document.createElement('div');
+                emptyBranchPlaceholder.className = 'empty-branch-placeholder';
+                emptyBranchPlaceholder.textContent = 'Caminho vazio. Adicione blocos aqui!';
+                colEl.appendChild(emptyBranchPlaceholder);
+              }
+
+              colsEl.appendChild(colEl);
+            });
+
+            forkEl.appendChild(colsEl);
+            wrapper.appendChild(forkEl);
+          }
+
+          containerEl.appendChild(wrapper);
+
+        } else {
+          // Renderiza todos os nós que são simples (não-bifurcados)
+          const nodeEl = document.createElement('div');
+          nodeEl.className = `node ${node.type}`;
+
+          if (node.type === 'api') {
+            nodeEl.innerHTML = `<span class="k">${escapeHtml(node.title)}</span><span class="t">${escapeHtml(node.text)}</span>`;
+          } else {
+            nodeEl.innerHTML = `<strong>${escapeHtml(node.title)}</strong><p>${escapeHtml(node.text)}</p>`;
+          }
+
+          containerEl.appendChild(nodeEl);
+        }
+
+        // Adiciona conector vertical entre nós sequenciais, exceto se for o último nó ou for um bloco de decisão
+        if (idx < nodes.length - 1 && node.type !== 'decision') {
+          const link = document.createElement('div');
+          link.className = 'link';
+          containerEl.appendChild(link);
+        }
+      });
+    }
+
+    // ==========================================
+    // 3. OPERAÇÕES DE MANIPULAÇÃO DINÂMICA
+    // ==========================================
+
+    // Adiciona bloco na raiz com um clique
+    window.addNodeToRoot = function(type) {
+      if (!flowTree) flowTree = [];
+      flowTree.push(createNodeObject(type));
+      renderEditor();
+      renderCanvas();
+    };
+
+    // Adiciona bloco em um ramo/lado específico
+    window.addNodeToBranch = function(branchId, type) {
+      const newNode = createNodeObject(type);
+      findAndMutateBranch(flowTree, branchId, (branch) => {
+        if (!branch.children) branch.children = [];
+        branch.children.push(newNode);
+      });
+      renderEditor();
+      renderCanvas();
+    };
+
+    // Adiciona novo caminho (ramal) na Decisão
+    window.addBranch = function(decisionId) {
+      findAndMutateNode(flowTree, decisionId, (node) => {
+        const nextNum = (node.branches ? node.branches.length : 0) + 1;
+        node.branches.push({
+          id: 'b_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+          label: `Opção ${nextNum}`,
+          children: [createNodeObject('msg', `Ação Opção ${nextNum}`)]
+        });
+      });
+      renderEditor();
+      renderCanvas();
+    };
+
+    // Excluir ramo de decisão
+    window.deleteBranch = function(decisionId, branchId) {
+      findAndMutateNode(flowTree, decisionId, (node) => {
+        node.branches = node.branches.filter(b => b.id !== branchId);
+      });
+      renderEditor();
+      renderCanvas();
+    };
+
+    // Excluir bloco de nó do fluxo
+    window.deleteNode = function(nodeId) {
+      removeNodeRecursive(flowTree, nodeId);
+      renderEditor();
+      renderCanvas();
+    };
+
+    // Ordenação: subir/descer bloco
+    window.moveNode = function(nodeId, dir) {
+      moveNodeRecursive(flowTree, nodeId, dir);
+      renderEditor();
+      renderCanvas();
+    };
+
+    // Limpar fluxo completo
+    window.clearAllNodes = function() {
+      if (confirm("Tem certeza que deseja apagar todos os blocos e começar do zero?")) {
+        flowTree = [];
+        renderEditor();
+        renderCanvas();
+      }
+    };
+
+    // Atualização de campos de digitação (Inputs)
+    window.updateField = function(nodeId, field, value) {
+      findAndMutateNode(flowTree, nodeId, (node) => {
+        node[field] = value;
+      });
+      renderCanvas();
+    };
+
+    window.updateBranchLabel = function(decisionId, branchId, value) {
+      findAndMutateNode(flowTree, decisionId, (node) => {
+        const branch = node.branches.find(b => b.id === branchId);
+        if (branch) branch.label = value;
+      });
+      renderCanvas();
+    };
+
+    // ==========================================
+    // 4. FÁBRICA DE OBJETOS: MODELOS DE CADA BLOCO
+    // ==========================================
+    function createNodeObject(type, customTitle) {
+      const defaults = {
+        start: { title: "Root", text: "Disparo ou gatilho de entrada do fluxo." },
+        msg: { title: "Fraseologia", text: "Insira a mensagem que o robô irá enviar..." },
+        decision: { title: "Decisão", text: "Qual critério divide este caminho?" },
+        api: { title: "Integração API", text: "GET /api/v1/dados-usuario" },
+        end: { title: "Fim do Bot", text: "O bot encerra o atendimento." },
+        
+        // Novos blocos adicionados
+        data: { title: "Base Dados", text: "Tabela: contatos | Ação: Select" },
+        function: { title: "Função/Integração", text: "formataData(usuario.criado_em)" },
+        metadado: { title: "Metadado", text: "chave: canal_origem | valor: whatsapp" },
+        menu: { title: "Item de Menu", text: "Opção [1] - Falar com Suporte" },
+        forms: { title: "ColmeIA Forms", text: "Formulário: cadastro_estudante" },
+        validation: { title: "Validação", text: "Critério: validaCPF(input_usuario)" },
+        human: { title: "Atendimento Humano", text: "Fila: Atendimento Geral" },
+        hub: { title: "Decision Hub", text: "Direciona tráfego com base em regras" }
+      };
+
+      const base = {
+        id: 'node_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        type: type,
+        title: customTitle || defaults[type].title,
+        text: defaults[type].text
+      };
+
+      // Inicializa caminhos padrão ao criar uma nova ramificação de decisão
+      if (type === 'decision') {
+        base.branches = [
+          {
+            id: 'b_' + Date.now() + '_1',
+            label: 'Sim',
+            children: [{ id: 'sub_' + Date.now() + '_1', type: 'msg', title: 'Fraseologia Sim', text: 'Opção aceita!' }]
+          },
+          {
+            id: 'b_' + Date.now() + '_2',
+            label: 'Não',
+            children: [{ id: 'sub_' + Date.now() + '_2', type: 'end', title: 'Fim do Bot', text: 'Encerrado.' }]
+          }
+        ];
+      }
+      return base;
+    }
+
+    // ==========================================
+    // 5. MÉTODOS RECURSIVOS DE NAVEGAÇÃO DA ÁRVORE
+    // ==========================================
+    function findAndMutateNode(nodes, id, cb) {
+      for (let n of nodes) {
+        if (n.id === id) { cb(n); return true; }
+        if (n.branches) {
+          for (let b of n.branches) {
+            if (findAndMutateNode(b.children || [], id, cb)) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function findAndMutateBranch(nodes, branchId, cb) {
+      for (let n of nodes) {
+        if (n.branches) {
+          for (let b of n.branches) {
+            if (b.id === branchId) { cb(b); return true; }
+            if (findAndMutateBranch(b.children || [], branchId, cb)) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function removeNodeRecursive(nodes, id) {
+      const idx = nodes.findIndex(n => n.id === id);
+      if (idx !== -1) { nodes.splice(idx, 1); return true; }
+      for (let n of nodes) {
+        if (n.branches) {
+          for (let b of n.branches) {
+            if (removeNodeRecursive(b.children || [], id)) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function moveNodeRecursive(nodes, id, dir) {
+      const idx = nodes.findIndex(n => n.id === id);
+      if (idx !== -1) {
+        const target = idx + dir;
+        if (target >= 0 && target < nodes.length) {
+          const temp = nodes[idx];
+          nodes[idx] = nodes[target];
+          nodes[target] = temp;
+          return true;
+        }
+      }
+      for (let n of nodes) {
+        if (n.branches) {
+          for (let b of n.branches) {
+            if (moveNodeRecursive(b.children || [], id, dir)) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ==========================================
+    // 6. IMPORTAÇÃO E EXPORTAÇÃO DE ARQUIVOS
+    // ==========================================
+
+    // Baixa o HTML estático completo (Pronto para visualização externa)
+    document.getElementById('save-html-btn').addEventListener('click', () => {
+      if (!flowTree || flowTree.length === 0) {
+        alert("Adicione pelo menos um bloco antes de baixar o arquivo HTML!");
+        return;
+      }
+
+      const canvasHtml = flowchartCanvasEl.innerHTML;
+      const staticHtml = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fluxograma ColmeIA Exportado</title>
+  <style>
+    :root{--canvas:#EEF2EC;--paper:#FFFFFF;--ink:#17251B;--soft:#55675A;--line:#B4C4B8;--green:#3C8C50;--deep:#27603A;--mint:#DEEFE1;--dark:#1E2B22;--sky-blue:#0284C7;--gibi-blue:#ECF8FF;--gibi-border:#1E2B22;--color-data:#7C3AED;--color-function:#2563EB;--color-metadado:#0D9488;--color-menu:#DB2777;--color-forms:#D4A359;--color-validation:#D97706;--color-human:#E11D48;--color-hub:#4F46E5;--node-max-width:380px}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--canvas);color:var(--ink);font-family:system-ui,-apple-system,sans-serif;padding:40px 20px}
+    .wrap{max-width:1400px;margin:0 auto}
+    .stage{display:flex;flex-direction:column;align-items:center}
+    .link{width:0;border-left:2px solid var(--line);height:26px;position:relative;flex:none}
+    .link::after{content:"";position:absolute;left:-5px;bottom:-1px;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--line)}
+    .fork-group-wrapper{display:flex;flex-direction:column;align-items:center;width:100%}
+    .fork{width:100%}
+    .fork .bar-h{height:0;border-top:2px solid var(--line);margin:0 auto}
+    .fork .cols{display:flex;gap:26px;align-items:flex-start}
+    .fork .cols > .col{flex:1 1 0;min-width:240px;display:flex;flex-direction:column;align-items:center}
+    .fork .cols > .col::before{content:"";width:0;border-left:2px solid var(--line);height:22px;position:relative}
+    .tag{font-size:12.5px;color:var(--deep);background:var(--mint);border:1px solid rgba(39,96,58,.25);border-radius:999px;padding:3px 12px;margin:6px 0 0;text-align:center;white-space:nowrap}
+    .node{width:100%;max-width:var(--node-max-width);border-radius:8px;padding:12px 16px;text-align:center;word-break:break-word}
+    .node strong{display:block;font-size:14px;margin-bottom:4px}
+    .node p{margin:0;font-size:13px;color:var(--soft)}
+    .start{background:var(--sky-blue);color:#fff;border-radius:6px;max-width:320px}
+    .start p{color:#E0F2FE}
+    .end{background:var(--dark);color:#EAF1EB;border-radius:999px;max-width:260px}
+    .msg{background:var(--gibi-blue);border:2px solid var(--gibi-border);border-radius:12px;text-align:left;position:relative;margin-left:10px;box-shadow:3px 3px 0px rgba(0,0,0,0.08)}
+    .msg::before{content:"";position:absolute;bottom:12px;left:-10px;width:0;height:0;border-style:solid;border-width:8px 10px 8px 0;border-color:transparent var(--gibi-border) transparent transparent}
+    .msg::after{content:"";position:absolute;bottom:12px;left:-8px;width:0;height:0;border-style:solid;border-width:8px 10px 8px 0;border-color:transparent var(--gibi-blue) transparent transparent}
+    .msg strong, .msg p{color:var(--gibi-border)}
+    .api{background:var(--deep);color:#F1F8F2;border-radius:6px;max-width:330px}
+    .api .k{display:block;font-size:11px;color:#A8CDB2;font-weight:500;margin-bottom:3px}
+    .api .t{font-weight:600}
+    .decision{background:var(--paper);border:2px solid var(--green);padding:14px 28px;max-width:330px;clip-path:polygon(20px 0,calc(100% - 20px) 0,100% 50%,calc(100% - 20px) 100%,20px 100%,0 50%)}
+    .data{background:var(--paper);border:2px solid var(--color-data);border-radius:12px/24px;max-width:300px}
+    .data strong{color:var(--color-data)}
+    .function{background:var(--paper);border:2px solid var(--color-function);border-radius:0;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);max-width:320px}
+    .function strong{color:var(--color-function)}
+    .metadado{background:#F0FDFA;border:1px solid var(--color-metadado);border-left:5px solid var(--color-metadado);border-radius:4px;text-align:left;max-width:280px}
+    .metadado strong{color:var(--color-metadado)}
+    .menu{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--color-menu);border-radius:8px;text-align:left}
+    .menu strong{color:var(--color-menu)}
+    .forms{background:#FFFDF5;border:2px dashed var(--color-forms);border-radius:8px}
+    .forms strong{color:#8a5710}
+    .validation{background:var(--paper);border:2px solid var(--color-validation);border-radius:8px;border-top-left-radius:20px;border-top-right-radius:20px}
+    .validation strong{color:var(--color-validation)}
+    .human{background:linear-gradient(135deg,#FFF1F2 0%,#FFE4E6 100%);border:2px solid var(--color-human);border-radius:12px}
+    .human strong{color:var(--color-human)}
+    .hub{background:var(--paper);border:3px double var(--color-hub);border-radius:50%;aspect-ratio:1;display:flex;flex-direction:column;justify-content:center;align-items:center;max-width:220px;padding:20px}
+    .hub strong{color:var(--color-hub)}
+    @media(max-width:860px){.fork .bar-h{display:none}.fork .cols{flex-direction:column;align-items:center}.fork .cols>.col{width:100%}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="stage">
+      ${canvasHtml}
+    </div>
+  </div>
+</body>
+</html>`;
+
+      const blob = new Blob([staticHtml], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'meu-fluxograma-colmeia.html';
+      a.click();
+    });
+
+    // Baixa o JSON de Rascunho
+    document.getElementById('export-json-btn').addEventListener('click', () => {
+      const dataStr = JSON.stringify(flowTree, null, 2);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([dataStr], { type: 'application/json' }));
+      a.download = 'colmeia-draft.json';
+      a.click();
+    });
+
+    // Importa o JSON de Rascunho de volta para a tela
+    document.getElementById('import-btn').addEventListener('click', () => {
+      document.getElementById('import-file').click();
+    });
+
+    document.getElementById('import-file').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          flowTree = JSON.parse(evt.target.result);
+          init();
+        } catch (err) {
+          alert("Erro: Arquivo JSON de rascunho inválido.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // Aciona impressão e exportação nativa em PDF
+    document.getElementById('print-btn').addEventListener('click', () => {
+      window.print();
+    });
+
+    // Inicializa a aplicação
+    init();
+  </script>
+</body>
+</html>

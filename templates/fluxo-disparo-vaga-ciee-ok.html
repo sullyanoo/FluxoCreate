@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fluxo — Disparo de vaga para estudantes convocados</title>
+<style>
+:root{
+  --canvas:#EEF2EC;
+  --paper:#FFFFFF;
+  --ink:#17251B;
+  --soft:#55675A;
+  --line:#B4C4B8;
+  --green:#3C8C50;
+  --deep:#27603A;
+  --mint:#DEEFE1;
+  --alert:#B4402F;
+  --dark:#1E2B22;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--canvas);
+  color:var(--ink);
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  font-size:15px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- barra de ferramentas ---------- */
+.bar{
+  position:sticky;top:0;z-index:20;
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+  padding:10px 20px;
+  background:rgba(238,242,236,.94);
+  backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+}
+.bar h1{
+  margin:0;font-size:15px;font-weight:650;letter-spacing:-.01em;
+  flex:1 1 260px;
+}
+.bar button{
+  font:inherit;font-size:13px;
+  padding:6px 12px;border-radius:6px;
+  border:1px solid var(--line);
+  background:var(--paper);color:var(--ink);
+  cursor:pointer;
+}
+.bar button:hover{border-color:var(--green);color:var(--deep)}
+.bar button:focus-visible,[contenteditable]:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.bar button[aria-pressed="true"]{background:var(--deep);border-color:var(--deep);color:#fff}
+body.editing [data-edit]{
+  background:#fffdf3;
+  box-shadow:inset 0 0 0 1px rgba(60,140,80,.35);
+  border-radius:3px;
+}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1160px;margin:0 auto;padding:28px 20px 90px}
+.lede{max-width:56ch;margin:0 0 30px;color:var(--soft)}
+.lede strong{color:var(--ink);font-weight:600}
+
+.stage{display:flex;flex-direction:column;align-items:center}
+.stage > *{max-width:100%}
+
+/* conectores */
+.link{width:0;border-left:2px solid var(--line);height:26px;position:relative;flex:none}
+.link::after{
+  content:"";position:absolute;left:-5px;bottom:-1px;
+  border-left:5px solid transparent;border-right:5px solid transparent;
+  border-top:7px solid var(--line);
+}
+.link.plain::after{display:none}
+
+.fork{width:100%}
+.fork .bar-h{height:0;border-top:2px solid var(--line);width:50%;margin:0 auto}
+.fork .cols{display:flex;gap:26px;align-items:flex-start}
+.fork .cols > .col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center}
+.fork .cols > .col::before{
+  content:"";width:0;border-left:2px solid var(--line);height:22px;
+  position:relative;
+}
+
+.fork.stack .bar-h{display:none}
+.fork.stack .cols{flex-direction:column;gap:0;align-items:center}
+.fork.stack .cols > .col{width:100%}
+.fork.stack .cols > .col::before{height:26px}
+
+.tag{
+  font-size:12.5px;color:var(--deep);
+  background:var(--mint);
+  border:1px solid rgba(39,96,58,.25);
+  border-radius:999px;
+  padding:3px 11px;
+  margin:10px 0 0;
+  text-align:center;
+}
+
+/* ---------- nós ---------- */
+.node{width:100%;max-width:430px}
+
+.start,.end{
+  border-radius:999px;text-align:center;padding:11px 20px;
+  font-weight:600;
+}
+.start{background:var(--green);color:#fff;max-width:330px}
+.end{
+  background:var(--dark);color:#EAF1EB;max-width:230px;
+  font-size:13.5px;font-weight:500;
+}
+
+.msg{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-left:4px solid var(--green);
+  border-radius:10px;
+  padding:14px 16px;
+}
+.msg p{margin:0 0 9px}
+.msg p:last-child{margin-bottom:0}
+.msg .hi{font-weight:650}
+.msg .var{font-style:italic;color:var(--soft)}
+.msg .alert{color:var(--alert);font-weight:650}
+.msg ul{margin:0 0 9px;padding:0;list-style:none}
+.msg li{margin:0 0 3px}
+.msg .rule{border:0;border-top:1px dashed var(--line);margin:12px 0 10px}
+.msg .cta{
+  display:inline-block;border:1px solid var(--green);color:var(--deep);
+  border-radius:6px;padding:5px 11px;font-size:13.5px;font-weight:600;
+}
+
+.opts{display:grid;gap:10px;margin:0 0 4px}
+.opt{border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:#FAFCF9}
+.opt .n{font-weight:650;margin:0 0 5px}
+
+.choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.choice{
+  border:1px dashed var(--green);color:var(--deep);
+  border-radius:6px;padding:5px 10px;font-size:13.5px;
+  background:#F4FAF5;
+}
+
+.api{
+  background:var(--deep);color:#F1F8F2;
+  border-radius:5px;padding:12px 16px;max-width:330px;
+  text-align:center;
+}
+.api .k{
+  display:block;font-size:11.5px;color:#A8CDB2;margin-bottom:3px;
+  font-weight:500;
+}
+.api .t{font-weight:600}
+
+.decision{
+  background:var(--paper);
+  border:2px solid var(--green);
+  padding:16px 34px;
+  text-align:center;font-weight:650;
+  max-width:330px;
+  clip-path:polygon(22px 0,calc(100% - 22px) 0,100% 50%,calc(100% - 22px) 100%,22px 100%,0 50%);
+}
+
+.jump{
+  display:block;text-decoration:none;
+  border:1px solid var(--deep);background:var(--mint);color:var(--deep);
+  border-radius:999px;padding:8px 16px;font-size:13.5px;font-weight:600;
+  text-align:center;max-width:300px;
+}
+.jump:hover{background:var(--deep);color:#fff}
+
+/* ---------- seções ---------- */
+.seg{width:100%;margin-top:34px;padding-top:26px;border-top:1px solid var(--line)}
+.seg > h2{
+  margin:0 0 4px;font-size:17px;font-weight:650;letter-spacing:-.01em;
+}
+.seg > .from{margin:0 0 22px;color:var(--soft);font-size:13.5px}
+.seg .stage{width:100%}
+
+/* ---------- responsivo ---------- */
+@media (max-width:860px){
+  .fork .bar-h{display:none}
+  .fork .cols{flex-direction:column;gap:0;align-items:center}
+  .fork .cols > .col::before{height:26px}
+  .fork .cols > .col{width:100%}
+}
+@media print{
+  .bar{display:none}
+  body{background:#fff}
+  .seg{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <h1 data-edit>Fluxo — disparo de vaga para estudantes convocados</h1>
+   </div>
+
+<div class="wrap">
+
+ <p class="lede" data-edit="">Fluxo em quatro trechos: o disparo inicial,
+  com dois caminhos <strong>Trecho A</strong> (Gostei da vaga) e <strong>Trecho B</strong> (Não gostei da vaga), o terceiro trecho, caso necessite agendar entrevista (<strong>Trecho C</strong>), e o quarto trecho, para 
+  consulta de novas vagas (<strong>Trecho D</strong>).</p>
+
+
+  <!-- ================= ENTRADA ================= -->
+  <div class="stage">
+
+    <div class="node start" data-edit>Disparo para estudantes convocados na vaga</div>
+    <div class="link"></div>
+
+    <div class="node msg">
+      <p class="hi" data-edit>Uau! O CIEE tem uma ótima notícia!</p>
+      <p class="var" data-edit>Olá {nome},</p>
+      <p data-edit>Encontramos uma vaga perfeita para você!<br>Confira os detalhes</p>
+      <ul>
+        <li data-edit>✅ Código da vaga:</li>
+        <li data-edit>📋 Área profissional:</li>
+        <li data-edit>🏢 Nome da empresa:</li>
+        <li data-edit>💰 Valor da bolsa: R$ &nbsp; 🕐 Horário:</li>
+        <li data-edit>🎁 Benefícios:</li>
+        <li data-edit>📍 Local da vaga:</li>
+      </ul>
+      <hr class="rule">
+      <div class="choices">
+        <span class="choice" data-edit="">Gostei da vaga</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+         <span class="choice" data-edit="">Não gostei da vaga</span>
+      </div>
+
+    </div>
+
+    <div class="link"></div>
+
+    <!-- ============== FORK A / B ============== -->
+    <div class="fork">
+      <div class="bar-h"></div>
+      <div class="cols">
+
+        <!-- ---------- CAMINHO A ---------- -->
+        <div class="col">
+          <div class="tag" data-edit>Gostei da vaga</div>
+          <div class="link"></div>
+
+                    <div class="node decision" data-edit>A vaga exige escolha de agenda?</div>
+
+          <div class="link"></div>
+
+          <div class="fork">
+            <div class="bar-h"></div>
+            <div class="cols">
+              <div class="col">
+                <div class="tag" data-edit>Não — sem agendamento</div>
+                <div class="link"></div>
+<div class="node msg">
+                        
+                      <div class="choices">
+             <p data-edit>Oba! Você está participando do processo seletivo.<br>Preste atenção nas instruções a seguir:</p>
+            <p class="alert" data-edit>TRAZER DADOS DO PROCESSO SELETIVO</p>
+            <p data-edit>Em caso de dúvidas, acesse o site do CIEE e verifique as informações no ambiente de “Minhas Vagas”.</p>
+            <p class="hi" data-edit>Boa sorte!</p>
+              <span class="choice" data-edit>Encerrar o atendimento</span>
+ <span class="choice" data-edit>Buscar mais vagas</span>
+            </div>
+          </div>
+              <div class="col">
+        <div class="link"></div>        
+       <div class="node end" data-edit>Opção Encerrar-> Fim do atendimento</div>
+
+                <div class="link"></div>
+                <a class="jump" href="#etapa-c" data-edit>Opção buscar mais vagas-> Segue para o trecho D</a>
+              </div>
+
+
+             </div>
+
+              <div class="col">
+                <div class="tag" data-edit>Sim — necessita agenda da entrevista</div>
+                <div class="link"></div>
+                <a class="jump" href="#etapa-d" data-edit>Segue para o trecho C</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+       
+        <!-- ---------- CAMINHO B ---------- -->
+        <div class="col">
+          <div class="tag" data-edit>Não gostei da vaga</div>
+          <div class="link"></div>
+
+          <div class="node msg">
+            <p data-edit>Puxa, que pena que não curtiu a vaga. Pode informar o motivo?</p>
+            <p class="hi" data-edit>Trazer a lista de motivos:</p>
+          </div>
+          <div class="link"></div>
+
+          <div class="node api">
+            <span class="k" data-edit>API</span>
+            <span class="t" data-edit>Salva o motivo de recusa</span>
+          </div>
+          <div class="link"></div>
+
+          <div class="node msg">
+            <p data-edit>Mas não desanime, a CIEE tem milhares de oportunidades e uma delas pode ser perfeita para você!</p>
+            <p data-edit>Você pode acessar  nossa vitrine de vagas para ter acesso a todas elas! Se preferir, podemos fazer uma busca para tentar encontrar mais vagas no seu perfil agora mesmo.</p>
+            <p><span class="cta" data-edit>Botão com link da vitrine</span></p>
+            <hr class="rule">
+             <div class="choices">
+              <span class="choice" data-edit="">Encerrar o atendimento</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+              <span class="choice" data-edit="">Buscar mais vagas</span>
+            </div>
+
+          </div>
+
+          <div class="link"></div>
+
+          <div class="fork">
+            <div class="bar-h"></div>
+            <div class="cols">
+              <div class="col">
+                <div class="tag" data-edit>Encerrar</div>
+                <div class="link"></div>
+                <div class="node msg">
+                  <p data-edit>Agradecemos o seu retorno.<br>O atendimento foi concluído.</p>
+                </div>
+                <div class="link"></div>
+                <div class="node end" data-edit>Fim do atendimento</div>
+              </div>
+              <div class="col">
+                <div class="tag" data-edit>Buscar mais vagas</div>
+                <div class="link"></div>
+                <a class="jump" href="#etapa-c" data-edit>Segue para o trecho D</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  
+
+  <!-- ================= TRECHO D ================= -->
+  <div class="seg" id="etapa-d">
+    <h2 data-edit>Trecho C — escolha da agenda da entrevista</h2>
+    <p class="from" data-edit>Entrada: quando a vaga exige agendamento.</p>
+
+    <div class="stage">
+
+      <div class="node api">
+        <span class="k" data-edit>API</span>
+        <span class="t" data-edit>Consulta as agendas disponíveis (até 3 agendas)</span>
+      </div>
+      <div class="link"></div>
+
+      <div class="node msg">
+        <p data-edit>Falta pouco! Agora escolha o melhor horário para a sua entrevista.</p>
+        <p class="hi" data-edit>Agendas disponíveis:</p>
+        <div class="opts">
+          <div class="opt">
+            <p class="n" data-edit>Agenda 1</p>
+            <ul>
+              <li data-edit>📅 Data: dd/mm/aaaa &nbsp; 🕐 Horário: hh:mm</li>
+              <li data-edit>📋 Tipo da entrevista: xxxxxx</li>
+            </ul>
+          </div>
+          <div class="opt">
+            <p class="n" data-edit>Agenda 2</p>
+            <ul>
+              <li data-edit>📅 Data: dd/mm/aaaa &nbsp; 🕐 Horário: hh:mm</li>
+              <li data-edit>📋 Tipo da entrevista: xxxxxx</li>
+            </ul>
+          </div>
+          <div class="opt">
+            <p class="n" data-edit>Agenda 3</p>
+            <ul>
+              <li data-edit>📅 Data: dd/mm/aaaa &nbsp; 🕐 Horário: hh:mm</li>
+              <li data-edit>📋 Tipo da entrevista: xxxxxx</li>
+            </ul>
+          </div>
+        </div>
+        <hr class="rule">
+        <p class="hi" data-edit>Informe o número da agenda que você escolheu</p>
+      </div>
+
+      <div class="link"></div>
+      <div class="tag" data-edit>Agenda escolhida</div>
+      <div class="link"></div>
+
+      <div class="node api">
+        <span class="k" data-edit>API</span>
+        <span class="t" data-edit>Registra a agenda escolhida e retorna os dados da entrevista</span>
+      </div>
+      <div class="link"></div>
+
+      <div class="node msg">
+        <p class="hi" data-edit>Entrevista agendada! ✅</p>
+        <p data-edit>Confira os detalhes:</p>
+        <ul>
+          <li data-edit>📋 Tipo da entrevista:</li>
+          <li data-edit>📅 Data: &nbsp; 🕐 Horário:</li>
+          <li data-edit>🏢 Nome da empresa:</li>
+          <li data-edit>📍 Local da entrevista ou link de acesso:</li>
+          <li data-edit>👤 Responsável pelo contato:</li>
+          <li data-edit>📝 Orientações e documentos necessários:</li>
+        </ul>
+        <p data-edit>Em caso de dúvidas, acesse o site do CIEE e verifique as informações no ambiente de “Minhas Vagas”.</p>
+        <p class="hi" data-edit>Boa sorte!</p>
+        <hr class="rule">
+       <div class="choices">
+        <span class="choice" data-edit="">Encerrar atendimento</span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+
+         <span class="choice" data-edit="">Buscar mais vagas</span>
+      </div>
+
+      </div>
+
+      <div class="link"></div>
+
+      <div class="fork">
+        <div class="bar-h"></div>
+        <div class="cols">
+          <div class="col">
+            <div class="tag" data-edit>Encerrar</div>
+            <div class="link"></div>
+            <div class="node msg">
+              <p data-edit>Agradecemos o seu retorno.<br>O atendimento foi concluído.</p>
+            </div>
+            <div class="link"></div>
+            <div class="node end" data-edit>Fim do atendimento</div>
+          </div>
+          <div class="col">
+            <div class="tag" data-edit>Buscar mais vagas</div>
+            <div class="link"></div>
+            <a class="jump" href="#etapa-c" data-edit>Segue para o trecho D</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= TRECHO C ================= -->
+  <div class="seg" id="etapa-c">
+    <h2 data-edit>Trecho D — consulta de novas vagas</h2>
+    <p class="from" data-edit>Entrada: quando selecionada opção “Buscar mais vagas”.</p>
+
+    <div class="stage">
+      <div class="node api">
+        <span class="k" data-edit>API</span>
+        <span class="t" data-edit>Consulta novas vagas (até 5 vagas)</span>
+      </div>
+      <div class="link"></div>
+
+      <div class="node decision" data-edit>Possui vagas?</div>
+      <div class="link"></div>
+
+      <div class="fork">
+        <div class="bar-h"></div>
+        <div class="cols">
+
+          <!-- Não -->
+          <div class="col">
+            <div class="tag" data-edit>Não</div>
+            <div class="link"></div>
+            <div class="node msg">
+              <p data-edit>Infelizmente não encontramos novas vagas para seu perfil neste momento.</p>
+              <p data-edit>Mas não desista, acesse o CIEE, mantenha seu cadastro atualizado e aguarde novas oportunidades.</p>
+              <p><span class="cta" data-edit>Botão com link do CIEE</span></p>
+              <p data-edit>Até mais.</p>
+            </div>
+            <div class="link"></div>
+            <div class="node end" data-edit>Fim do atendimento</div>
+          </div>
+
+          <!-- Sim -->
+          <div class="col">
+            <div class="tag" data-edit>Sim</div>
+            <div class="link"></div>
+
+            <div class="node msg">
+              <div class="opts">
+                <div class="opt">
+                  <p class="n" data-edit>Opção 1</p>
+                  <ul>
+                    <li data-edit>✅ Código da vaga: xxx &nbsp; 📋 Área profissional: xxx</li>
+                    <li data-edit>🏢 Nome da empresa: xxxxxx</li>
+                    <li data-edit>💰 Valor da bolsa: R$ xx + Benefícios</li>
+                    <li data-edit>📍 Local da vaga: xxxxxx</li>
+                  </ul>
+                </div>
+                <div class="opt">
+                  <p class="n" data-edit>Opção 2</p>
+                  <ul>
+                    <li data-edit>✅ Código da vaga: xxx &nbsp; 📋 Área profissional: xxx</li>
+                    <li data-edit>🏢 Nome da empresa: xxxxxx</li>
+                    <li data-edit>💰 Valor da bolsa: R$ xx + Benefícios</li>
+                    <li data-edit>📍 Local da vaga: xxxxxx</li>
+                  </ul>
+                </div>
+                <div class="opt">
+                  <p class="n" data-edit>Opção 3</p>
+                  <ul>
+                    <li data-edit>✅ Código da vaga: xxx &nbsp; 📋 Área profissional: xxx</li>
+                    <li data-edit>🏢 Nome da empresa: xxxxxx</li>
+                    <li data-edit>💰 Valor da bolsa: R$ xx + Benefícios</li>
+                    <li data-edit>📍 Local da vaga: xxxxxx</li>
+                  </ul>
+                </div>
+              </div>
+              <hr class="rule">
+              <p class="hi" data-edit>Informe o número da vaga que você se interessou</p>
+              <p data-edit>ou selecione:</p>
+              <div class="choices">
+                <span class="choice" data-edit>Não gostei da(s) vaga(s)</span>
+              </div>
+            </div>
+
+            <div class="link"></div>
+
+            <div class="fork">
+              <div class="bar-h"></div>
+              <div class="cols">
+
+                <div class="col">
+                  <div class="tag" data-edit>Não gostei</div>
+                  <div class="link"></div>
+                  <div class="node msg">
+                    <p data-edit>Puxa, que pena. Mas não desanime, o CIEE tem milhares de oportunidades e uma delas pode ser perfeita para você!</p>
+                    <p data-edit>Não esqueça de dar uma olhadinha em nossa vitrine de vagas! 💻🚀</p>
+                    <p><span class="cta" data-edit>Botão com link da vitrine</span></p>
+                    <p data-edit>O atendimento foi concluído.</p>
+                  </div>
+                  <div class="link"></div>
+                  <div class="node end" data-edit>Fim do atendimento</div>
+                </div>
+
+                <div class="col">
+                  <div class="tag" data-edit>Opção escolhida</div>
+                  <div class="link"></div>
+                  <div class="node api">
+                    <span class="k" data-edit>API</span>
+                    <span class="t" data-edit>Registra encaminhamento com retorno sobre dados da etapa</span>
+                  </div>
+ <div class="link"></div>
+
+                  <div class="node decision" data-edit>A vaga exige escolha de agenda?</div>
+               
+                  
+                  <div class="fork stack">
+                    <div class="bar-h"></div>
+                    <div class="cols">
+                      <div class="col">
+                        <div class="tag" data-edit>Não — sem agendamento</div>
+                        <div class="link"></div>
+                        <div class="node msg">
+                    <p data-edit>Oba! Você está participando do processo seletivo.<br>Preste atenção nas instruções a seguir:</p>
+                    <p class="alert" data-edit>TRAZER DADOS DO PROCESSO SELETIVO</p>
+                    <p data-edit>Em caso de dúvidas, acesse o site do CIEE e verifique as informações no ambiente de “Minhas Vagas”.</p>
+                    <p class="hi" data-edit>Boa sorte!</p>
+                  </div>
+
+                        <div class="link"></div>
+                        <div class="node end" data-edit>Fim do atendimento</div>
+                      </div>
+                      <div class="col">
+                        <div class="tag" data-edit>Sim — necessita agenda da entrevista</div>
+                        <div class="link"></div>
+                        <a class="jump" href="#etapa-d" data-edit>Volta para o trecho C</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var editBtn = document.getElementById('edit');
+  var targets = document.querySelectorAll('[data-edit]');
+
+  editBtn.addEventListener('click', function(){
+    var on = editBtn.getAttribute('aria-pressed') === 'true';
+    on = !on;
+    editBtn.setAttribute('aria-pressed', String(on));
+    editBtn.textContent = on ? 'Concluir edição' : 'Editar textos';
+    document.body.classList.toggle('editing', on);
+    targets.forEach(function(el){
+      if (on) { el.setAttribute('contenteditable','true'); }
+      else { el.removeAttribute('contenteditable'); }
+    });
+  });
+
+  document.getElementById('save').addEventListener('click', function(){
+    var clone = document.documentElement.cloneNode(true);
+    clone.querySelectorAll('[contenteditable]').forEach(function(el){
+      el.removeAttribute('contenteditable');
+    });
+    clone.querySelector('body').classList.remove('editing');
+    var btn = clone.querySelector('#edit');
+    if (btn){ btn.setAttribute('aria-pressed','false'); btn.textContent = 'Editar textos'; }
+    var html = '<!DOCTYPE html>\n' + clone.outerHTML;
+    var url = URL.createObjectURL(new Blob([html], {type:'text/html'}));
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'fluxo-disparo-vaga-ciee.html';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('print').addEventListener('click', function(){ window.print(); });
+})();
+</script>
+</body>
+</html>

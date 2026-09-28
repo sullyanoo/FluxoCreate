@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manual de Componentes — ColmeIA Flowchart</title>
+  <link rel="stylesheet" href="ajuda.css">
+</head>
+<body>
+
+  <header>
+    <h1>🐝 Manual de Componentes ColmeIA</h1>
+    <p>Este guia descreve os propósitos, aplicações práticas e estruturas HTML recomendadas para cada um dos 13 componentes de fluxograma do nosso ecossistema.</p>
+  </header>
+
+  <div class="container">
+    <div class="grid">
+
+      <!-- 1. ROOT -->
+      <div class="component-card">
+        <div class="preview-box">
+          <div class="node start">
+            <strong>Root</strong>
+            <p>Início do Fluxo</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div>
+            <h2>Root <span class="tag-type">Start</span></h2>
+            <p><strong>O que faz:</strong> Representa o início de todo o processo de atendimento ou disparo do fluxo. Um fluxograma sempre deve ter exatamente uma raiz para que o leitor saiba por onde o bot começa.</p>
+          </div>
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+            <pre><code>&lt;div class="node start"&gt;
+                &lt;strong&gt;Root&lt;/strong&gt;
+                &lt;p&gt;Início do Fluxo&lt;/p&gt;
+                &lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. FRASEOLOGIA -->
+      <div class="component-card">
+        <div class="preview-box" style="padding-left: 30px;">
+          <div class="node msg">
+            <strong>Fraseologia</strong>
+            <p>Mensagem enviada no WhatsApp ou Chat para o usuário.</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div>
+            <h2>Fraseologia <span class="tag-type" style="background: var(--gibi-blue); color: var(--gibi-border);">Msg</span></h2>
+            <p><strong>O que faz:</strong> Indica um balão de diálogo de conversa. Ele imita balões de gibi clássico e deve conter o texto exato que o usuário final lerá em seu canal de mensagem (WhatsApp, Webchat, Telegram, etc.).</p>
+          </div>
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+            <pre><code>&lt;div class="node msg"&gt;
+                &lt;strong&gt;Fraseologia&lt;/strong&gt;
+                &lt;p&gt;Mensagem do robô...&lt;/p&gt;
+                &lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. DECISÃO -->
+      <div class="component-card">
+        <div class="preview-box">
+          <div class="node decision">
+            <strong>Decisão</strong>
+            <p>O cliente quer prosseguir?</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div>
+            <h2>Decisão <span class="tag-type" style="background: #fdf5e6; color: #8a5710;">Decision</span></h2>
+            <p><strong>O que faz:</strong> Um losango que divide o fluxo em dois ou mais ramais (Forks). Use para direcionar caminhos como "Sim/Não" ou múltiplos comportamentos de resposta de botão.</p>
+          </div>
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+            <pre><code>&lt;div class="node decision"&gt;
+                &lt;strong&gt;Decisão&lt;/strong&gt;
+                &lt;p&gt;O cliente quer prosseguir?&lt;/p&gt;
+                &lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. API -->
+      <div class="component-card">
+        <div class="preview-box">
+          <div class="node api">
+            <span class="k">Integração API</span>
+            <span class="t">POST /v1/salvar-lead</span>
+          </div>
+        </div>
+        <div class="info-box">
+          <div>
+            <h2>API <span class="tag-type" style="background: #eef2fa; color: #1e3a6a;">Api</span></h2>
+            <p><strong>O que faz:</strong> Executa uma chamada HTTP para sistemas externos (back-ends, CRMs, etc.). Representada por uma caixa escura contrastante indicando operação sistêmica.</p>
+          </div>
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+            <pre><code>&lt;div class="node api"&gt;
+                &lt;span class="k"&gt;Integração API&lt;/span&gt;
+                &lt;span class="t"&gt;POST /v1/salvar-lead&lt;/span&gt;
+                &lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. BASE DE DADOS -->
+      <div class="component-card">
+        <div class="preview-box">
+          <div class="node data">
+            <strong>Base Dados</strong>
+            <p>Tabela: Lead_CIEE</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div>
+            <h2>Base de Dados <span class="tag-type" style="background: var(--color-data-light); color: var(--color-data);">Data</span></h2>
+            <p><strong>O que faz:</strong> Simula o cilindro de persistência física clássico de banco de dados. Use para sinalizar persistência em disco ou operações de INSERT/SELECT diretas no banco.</p>
+          </div>
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+            <pre><code>&lt;div class="node data"&gt;
+                &lt;strong&gt;Base Dados&lt;/strong&gt;
+                &lt;p&gt;Tabela: Lead_CIEE&lt;/p&gt;
+                &lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. FUNÇÃO -->
+      <div class="component-card">
+        <div class="preview-box">
+          <div class="node function">
+            <strong>Função</strong>
+            <p>formataData(hoje)</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div>
+            <h2>Função <span class="tag-type" style="background: var(--color-function-light); color: var(--color-function);">Function</span></h2>
+            <p><strong>O que faz:</strong> Representada por um hexágono verde piscina. Ideal para expressar trechos com código, algoritmos lógicos e transformações estruturais rápidas de dados.</p>
+          </div>
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+            <pre><code>&lt;div class="node function"&gt;
+                &lt;strong&gt;Função&lt;/strong&gt;
+                &lt;p&gt;formataData(hoje)&lt;/p&gt;
+                &lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. METADADO -->
+      <div class="component-card">
+        <div class="preview-box">
+          <div class="node metadado">
+            <strong>Metadado</strong>
+            <p>canal_origem: whatsapp</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div>
+            <h2>Metadado <span class="tag-type" style="background: #F0FDFA; color: var(--color-metadado);">Metadado</span></h2>
+            <p><strong>O que faz:</strong> Salva chaves, valores ou variáveis na sessão do bot que serão transmitidos ao longo da árvore de atendimento em segundo plano.</p>
+          </div>
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+            <pre><code>&lt;div class="node metadado"&gt;
+                &lt;strong&gt;Metadado&lt;/strong&gt;
+                &lt;p&gt;canal_origem: whatsapp&lt;/p&gt;
+                &lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. ITEM DE MENU -->
+      <div class="component-card">
+        <div class="preview-box">
+          <div class="node menu">
+            <strong>Item de Menu</strong>
+            <p>Opção [1] - Vagas Estágio</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div>
+            <h2>Item de Menu <span class="tag-type" style="background: #FDF2F8; color: var(--color-menu);">Menu</span></h2>
+            <p><strong>O que faz:</strong> Indica um item de menu numérico ou botão clicável. Útil para estruturar fluxos onde o usuário final faz escolhas guiadas por listas fixas.</p>
+          </div>
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+            <pre><code>&lt;div class="node menu"&gt;
+                &lt;strong&gt;Item de Menu&lt;/strong&gt;
+                &lt;p&gt;Opção [1] - Vagas Estágio&lt;/p&gt;
+                &lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. COLMEIA FORMS -->
+      <div class="component-card">
+        <div class="preview-box">
+          <div class="node forms">
+            <strong>ColmeIA Forms</strong>
+            <p>Formulário de Cadastro CIEE</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div>
+            <h2>ColmeIA Forms <span class="tag-type" style="background: #FFFDF5; color: var(--color-forms);">Forms</span></h2>
+            <p><strong>O que faz:</strong> Retângulo tracejado de tom amarelo-ouro. Usado para destacar quando o fluxo exige que o usuário preencha um formulário eletrônico de coleta estruturada de dados.</p>
+          </div>
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+            <pre><code>&lt;div class="node forms"&gt;
+                &lt;strong&gt;ColmeIA Forms&lt;/strong&gt;
+                &lt;p&gt;Formulário de Cadastro...&lt;/p&gt;
+                &lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10. VALIDAÇÃO -->
+      <div class="component-card">
+        <div class="preview-box">
+          <div class="node validation">
+            <strong>Validação</strong>
+            <p>CPF válido?</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div>
+            <h2>Validação <span class="tag-type" style="background: var(--color-validation-light); color: var(--color-validation);">Validation</span></h2>
+            <p><strong>O que faz:</strong> Formato de losango em verde-claro. Perfeito para destacar checagens de integridade críticas no chatbot, como validações de CEP, CPF, e-mail e formatos de arquivos.</p>
+          </div>
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+            <pre><code>&lt;div class="node validation"&gt;
+                &lt;strong&gt;Validação&lt;/strong&gt;
+                &lt;p&gt;CPF válido?&lt;/p&gt;
+                &lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 11. ATENDIMENTO HUMANO -->
+      <div class="component-card">
+        <div class="preview-box">
+          <div class="node human">
+            <strong>Atendimento Humano</strong>
+            <p>Fila: Comercial</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div>
+            <h2>Atendimento Humano <span class="tag-type" style="background: #FFF1F2; color: var(--color-human);">Human</span></h2>
+            <p><strong>O que faz:</strong> Caixa quadrada vermelha com ícone vetorial de headset integrado no topo. Indica o ponto onde o bot encerra a automação de inteligência artificial e transiciona o chat para um atendente humano na plataforma.</p>
+          </div>
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+            <pre><code>&lt;div class="node human"&gt;
+                &lt;strong&gt;Atendimento Humano&lt;/strong&gt;
+                &lt;p&gt;Fila: Comercial&lt;/p&gt;
+                &lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 12. DECISION HUB -->
+      <div class="component-card">
+        <div class="preview-box">
+          <div class="node hub">
+            <strong>Decision Hub</strong>
+            <p>Avalia Canal de Entrada</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div>
+            <h2>Decision Hub <span class="tag-type" style="background: var(--color-hub-light); color: var(--color-hub);">Hub</span></h2>
+            <p><strong>O que faz:</strong> Retângulo roxo de processamento estratégico. Usado em centrais lógicas para redirecionar usuários entre diferentes robôs de acordo com tags e horários.</p>
+          </div>
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+            <pre><code>&lt;div class="node hub"&gt;
+                &lt;strong&gt;Decision Hub&lt;/strong&gt;
+                &lt;p&gt;Avalia Canal de Entrada&lt;/p&gt;
+                &lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 13. FIM DO BOT -->
+      <div class="component-card">
+        <div class="preview-box">
+          <div class="node end">
+            <strong>Fim do Bot</strong>
+            <p>Sucesso</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div>
+            <h2>Fim do Bot <span class="tag-type" style="background: #f0f0f0; color: #111;">End</span></h2>
+            <p><strong>O que faz:</strong> Balão tipo pílula escuro que sinaliza o encerramento do script lógico de automação de mensagens.</p>
+          </div>
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+            <pre><code>&lt;div class="node end"&gt;
+                &lt;strong&gt;Fim do Bot&lt;/strong&gt;
+                &lt;p&gt;Sucesso&lt;/p&gt;
+                &lt;/div&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JavaScript para Copiar Código -->
+  <script>
+    function copyCode(btn) {
+      const code = btn.nextElementSibling.innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = "Copiado! ✓";
+        btn.style.background = "#22C55E";
+        btn.style.color = "#fff";
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.style.background = "rgba(255, 255, 255, 0.1)";
+          btn.style.color = "#94A3B8";
+        }, 1500);
+      });
+    }
+  </script>
+</body>
+</html>
