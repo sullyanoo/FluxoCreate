@@ -15,6 +15,7 @@
       <h1>Criador de Fluxogramas ColmeIA</h1>
     </div>
     <div class="actions">
+        <button type="button" class="primary" onclick="createNewHtmlFile()">📄 Novo</button>
         <button type="button" class="btn-danger-text" onclick="clearAllNodes()">🗑️ Limpar Tudo</button>
         <button type="button" id="import-btn">📂 Carregar Rascunho</button>
         <button type="button" id="export-json-btn">💾 Baixar JSON</button>
@@ -22,7 +23,6 @@
         <button type="button" id="print-btn">🖨️ Imprimir / PDF</button>
         <button type="button" id="ajuda-btn" onclick="window.open('ajuda.html', '_blank')">❓ Ajuda</button>
     </div>
-
   </header>
 
   <!-- Janela Principal Dividida -->
@@ -52,7 +52,7 @@
           <button type="button" class="btn-node btn-validation" onclick="addNodeToRoot('validation')">Validação</button>
           <button type="button" class="btn-node btn-human" onclick="addNodeToRoot('human')">Atendimento Humano</button>
           <button type="button" class="btn-node btn-hub" onclick="addNodeToRoot('hub')">Decision Hub</button>
-          <button type="button" class="btn-node btn-journey" onclick="addNodeToRoot('jorney')">Próxima Jornada</button>
+          <button type="button" class="btn-node btn-journey" onclick="addNodeToRoot('journey')">Próxima Jornada</button>
         </div>
       </div>
 
@@ -109,9 +109,10 @@
               },
               {
                 id: "node_3_2",
-                type: "end",
-                title: "Fim do Bot",
-                text: "Encaminhado com sucesso."
+                type: "journey",
+                title: "Ir para o Fluxo D",
+                text: "Opção buscar mais vagas -> Segue para o trecho D",
+                url: "fluxo_vagas.html"
               }
             ]
           },
@@ -176,9 +177,12 @@
         const card = document.createElement('div');
         card.className = `editor-card card-${node.type}`;
         
+        let displayBadge = node.type === 'start' ? 'ROOT' : node.type.toUpperCase();
+        if (node.type === 'journey') displayBadge = 'PRÓXIMA JORNADA';
+
         card.innerHTML = `
           <div class="card-header">
-            <span class="badge badge-${node.type}">${node.type === 'start' ? 'ROOT' : node.type.toUpperCase()}</span>
+            <span class="badge badge-${node.type}">${displayBadge}</span>
             <div class="card-tools">
               ${index > 0 ? `<button type="button" title="Subir" onclick="moveNode('${node.id}', -1)">⬆️</button>` : ''}
               ${index < nodes.length - 1 ? `<button type="button" title="Descer" onclick="moveNode('${node.id}', 1)">⬇️</button>` : ''}
@@ -186,14 +190,28 @@
             </div>
           </div>
           <div class="form-field">
-            <label>Título / Rótulo</label>
+            <label>Título / Rótulo do Botão</label>
             <input type="text" value="${escapeHtml(node.title || '')}" oninput="updateField('${node.id}', 'title', this.value)">
           </div>
           <div class="form-field">
-            <label>Conteúdo / Descrição</label>
+            <label>Subtítulo / Descrição</label>
             <textarea rows="2" oninput="updateField('${node.id}', 'text', this.value)">${escapeHtml(node.text || '')}</textarea>
           </div>
         `;
+
+        // Se for Próxima Jornada, adiciona campo extra de Link
+        if (node.type === 'journey') {
+          const urlField = document.createElement('div');
+          urlField.className = 'form-field';
+          urlField.innerHTML = `
+            <label>🔗 Link / URL de Destino do Fluxo</label>
+            <input type="text" placeholder="ex: fluxo_vagas.html ou #trecho-c" value="${escapeHtml(node.url || '')}" oninput="updateField('${node.id}', 'url', this.value)">
+            <small style="font-size: 11px; color: var(--soft); display: block; margin-top: 3px;">
+              Insira o nome do outro arquivo HTML (ex: fluxo_b.html) ou um site externo para abrir ao clicar.
+            </small>
+          `;
+          card.appendChild(urlField);
+        }
 
         // Se for Decisão, renderiza as opções de caminhos laterais
         if (node.type === 'decision' && node.branches) {
@@ -255,7 +273,9 @@
       });
     }
 
+    // ==========================================
     // 2. RENDERIZAÇÃO VISUAL (CANVAS COLMEIA)
+    // ==========================================
     function renderCanvas() {
       autoSave();
       flowchartCanvasEl.innerHTML = '';
@@ -336,6 +356,16 @@
 
           containerEl.appendChild(wrapper);
 
+        } else if (node.type === 'journey') {
+          // RENDERIZA O BOTÃO DE PRÓXIMA JORNADA COMO LINK REAL CLICÁVEL DO NAVEGADOR
+          const cleanUrl = node.url || '#';
+          const jumpEl = document.createElement('a');
+          jumpEl.className = 'jump';
+          jumpEl.href = cleanUrl;
+          jumpEl.target = cleanUrl.startsWith('#') ? '_self' : '_blank'; // Abre nova guia se for arquivo externo
+          jumpEl.innerHTML = `<strong>${escapeHtml(node.title)}</strong><span>${escapeHtml(node.text)}</span>`;
+          containerEl.appendChild(jumpEl);
+
         } else {
           // Renderiza todos os nós que são simples (não-bifurcados)
           const nodeEl = document.createElement('div');
@@ -366,14 +396,16 @@
     // Adiciona bloco na raiz com um clique
     window.addNodeToRoot = function(type) {
       if (!flowTree) flowTree = [];
-      flowTree.push(createNodeObject(type));
+      const normalizedType = type === 'jorney' ? 'journey' : type;
+      flowTree.push(createNodeObject(normalizedType));
       renderEditor();
       renderCanvas();
     };
 
     // Adiciona bloco em um ramo/lado específico
     window.addNodeToBranch = function(branchId, type) {
-      const newNode = createNodeObject(type);
+      const normalizedType = type === 'jorney' ? 'journey' : type;
+      const newNode = createNodeObject(normalizedType);
       findAndMutateBranch(flowTree, branchId, (branch) => {
         if (!branch.children) branch.children = [];
         branch.children.push(newNode);
@@ -463,15 +495,22 @@
         forms: { title: "ColmeIA Forms", text: "Formulário: cadastro_estudante" },
         validation: { title: "Validação", text: "Critério: validaCPF(input_usuario)" },
         human: { title: "Atendimento Humano", text: "Fila: Atendimento Geral" },
-        hub: { title: "Decision Hub", text: "Direciona tráfego com base em regras" }
+        hub: { title: "Decision Hub", text: "Direciona tráfego com base em regras" },
+
+        // Suporte ao botão dinâmico de Próxima Jornada
+        journey: { title: "Próxima Jornada", text: "Ir para o outro trecho", url: "fluxo_vagas.html" }
       };
 
       const base = {
         id: 'node_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-        type: type,
-        title: customTitle || defaults[type].title,
-        text: defaults[type].text
+        type: type === 'jorney' ? 'journey' : type,
+        title: customTitle || defaults[type === 'jorney' ? 'journey' : type].title,
+        text: defaults[type === 'jorney' ? 'journey' : type].text
       };
+
+      if (base.type === 'journey') {
+        base.url = defaults.journey.url;
+      }
 
       // Inicializa caminhos padrão ao criar uma nova ramificação de decisão
       if (type === 'decision') {
@@ -575,19 +614,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Fluxograma ColmeIA Exportado</title>
   <style>
-    :root{--canvas:#EEF2EC;--paper:#FFFFFF;--ink:#17251B;--soft:#55675A;--line:#B4C4B8;--green:#3C8C50;--deep:#27603A;--mint:#DEEFE1;--dark:#1E2B22;--sky-blue:#0284C7;--gibi-blue:#ECF8FF;--gibi-border:#1E2B22;--color-data:#7C3AED;--color-function:#2563EB;--color-metadado:#0D9488;--color-menu:#DB2777;--color-forms:#D4A359;--color-validation:#D97706;--color-human:#E11D48;--color-hub:#4F46E5;--node-max-width:380px}
+    :root{--canvas:#EEF2EC;--paper:#FFFFFF;--ink:#17251B;--soft:#55675A;--line:#B4C4B8;--green:#3C8C50;--deep:#27603A;--mint:#DEEFE1;--dark:#1E2B22;--sky-blue:#0284C7;--gibi-blue:#ECF8FF;--gibi-border:#1E2B22;--color-data:#7C3AED;--color-function:#06B6D4;--color-metadado:#0D9488;--color-menu:#00bbff;--color-forms:#D4A359;--color-validation:#22C55E;--color-human:#2c2a2aad;--color-hub:#6366F1;--node-max-width:380px}
     *{box-sizing:border-box}
     body{margin:0;background:var(--canvas);color:var(--ink);font-family:system-ui,-apple-system,sans-serif;padding:40px 20px}
     .wrap{max-width:1400px;margin:0 auto}
     .stage{display:flex;flex-direction:column;align-items:center}
-    .link{width:0;border-left:2px solid var(--line);height:26px;position:relative;flex:none}
+    .link{width:0;border-left:2px solid var(--line);height:26px;position:relative;margin:0 auto}
     .link::after{content:"";position:absolute;left:-5px;bottom:-1px;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--line)}
     .fork-group-wrapper{display:flex;flex-direction:column;align-items:center;width:100%}
-    .fork{width:100%}
+    .fork{width:100%;display:flex;flex-direction:column;align-items:center}
     .fork .bar-h{height:0;border-top:2px solid var(--line);margin:0 auto}
-    .fork .cols{display:flex;gap:26px;align-items:flex-start}
-    .fork .cols > .col{flex:1 1 0;min-width:240px;display:flex;flex-direction:column;align-items:center}
-    .fork .cols > .col::before{content:"";width:0;border-left:2px solid var(--line);height:22px;position:relative}
+    .fork .cols{display:flex;gap:34px;align-items:flex-start;justify-content:center;width:100%}
+    .fork .cols>.col{flex:1 1 280px;min-width:280px;display:flex;flex-direction:column;align-items:center}
+    .fork .cols>.col::before{content:"";width:0;border-left:2px solid var(--line);height:22px;position:relative;margin:0 auto}
     .tag{font-size:12.5px;color:var(--deep);background:var(--mint);border:1px solid rgba(39,96,58,.25);border-radius:999px;padding:3px 12px;margin:6px 0 0;text-align:center;white-space:nowrap}
     .node{width:100%;max-width:var(--node-max-width);border-radius:8px;padding:12px 16px;text-align:center;word-break:break-word}
     .node strong{display:block;font-size:14px;margin-bottom:4px}
@@ -598,26 +637,37 @@
     .msg{background:var(--gibi-blue);border:2px solid var(--gibi-border);border-radius:12px;text-align:left;position:relative;margin-left:10px;box-shadow:3px 3px 0px rgba(0,0,0,0.08)}
     .msg::before{content:"";position:absolute;bottom:12px;left:-10px;width:0;height:0;border-style:solid;border-width:8px 10px 8px 0;border-color:transparent var(--gibi-border) transparent transparent}
     .msg::after{content:"";position:absolute;bottom:12px;left:-8px;width:0;height:0;border-style:solid;border-width:8px 10px 8px 0;border-color:transparent var(--gibi-blue) transparent transparent}
-    .msg strong, .msg p{color:var(--gibi-border)}
+    .msg strong,.msg p{color:var(--gibi-border)}
     .api{background:var(--deep);color:#F1F8F2;border-radius:6px;max-width:330px}
     .api .k{display:block;font-size:11px;color:#A8CDB2;font-weight:500;margin-bottom:3px}
     .api .t{font-weight:600}
     .decision{background:var(--paper);border:2px solid var(--green);padding:14px 28px;max-width:330px;clip-path:polygon(20px 0,calc(100% - 20px) 0,100% 50%,calc(100% - 20px) 100%,20px 100%,0 50%)}
-    .data{background:var(--paper);border:2px solid var(--color-data);border-radius:12px/24px;max-width:300px}
-    .data strong{color:var(--color-data)}
-    .function{background:var(--paper);border:2px solid var(--color-function);border-radius:0;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);max-width:320px}
+    
+    /* Botão de Salto Estilizado */
+    .jump{display:block;text-decoration:none;border:1.5px solid var(--deep);background:var(--mint);color:var(--deep);border-radius:999px;padding:8px 18px;font-size:13px;font-weight:600;text-align:center;max-width:320px;transition:all 0.15s ease}
+    .jump:hover{background:var(--deep);color:#fff}
+    .jump strong{display:block;font-size:13.5px}
+    .jump span{font-size:11.5px;font-weight:normal;opacity:0.9}
+
+    .data{background:var(--paper);border:2px solid var(--color-data);color:var(--ink);height:80px;border-radius:50px/18px;position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:16px 15px 10px}
+    .data::before{content:"";position:absolute;top:-1px;left:-2px;right:-2px;height:18px;background-color:#F5F3FF;border:2px solid var(--color-data);border-radius:50%;z-index:2}
+    .data::after{content:"";position:absolute;top:18px;left:-2px;right:-2px;height:18px;border-bottom:2px solid var(--color-data);border-radius:50%}
+    .data strong{color:var(--color-data);z-index:3;margin-top:8px}
+    .data p{z-index:3}
+    .function{background:#ECFEFF;border:2px solid var(--color-function);color:var(--ink);padding:16px 20px;max-width:300px;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
     .function strong{color:var(--color-function)}
     .metadado{background:#F0FDFA;border:1px solid var(--color-metadado);border-left:5px solid var(--color-metadado);border-radius:4px;text-align:left;max-width:280px}
     .metadado strong{color:var(--color-metadado)}
     .menu{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--color-menu);border-radius:8px;text-align:left}
     .menu strong{color:var(--color-menu)}
-    .forms{background:#FFFDF5;border:2px dashed var(--color-forms);border-radius:8px}
+    .forms{background:#FFFDF5;border:2px dashed var(--color-forms);border-radius:8px;color:var(--ink)}
     .forms strong{color:#8a5710}
-    .validation{background:var(--paper);border:2px solid var(--color-validation);border-radius:8px;border-top-left-radius:20px;border-top-right-radius:20px}
+    .validation{background:#F0FDF4;border:2px solid var(--color-validation);color:var(--ink);padding:24px 24px;max-width:280px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
     .validation strong{color:var(--color-validation)}
-    .human{background:linear-gradient(135deg,#FFF1F2 0%,#FFE4E6 100%);border:2px solid var(--color-human);border-radius:12px}
-    .human strong{color:var(--color-human)}
-    .hub{background:var(--paper);border:3px double var(--color-hub);border-radius:50%;aspect-ratio:1;display:flex;flex-direction:column;justify-content:center;align-items:center;max-width:220px;padding:20px}
+    .human{background:linear-gradient(135deg,#FFF1F2 0%,#4b4a4b0f 100%);border:2px solid var(--color-human);border-radius:12px;width:180px;height:180px;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:15px;margin:0 auto}
+    .human strong{color:var(--color-human);font-size:13px}
+    .human p{font-size:11px}
+    .hub{background:#EEF2FF;border:2px solid var(--color-hub);color:var(--ink);border-radius:6px;max-width:320px}
     .hub strong{color:var(--color-hub)}
     @media(max-width:860px){.fork .bar-h{display:none}.fork .cols{flex-direction:column;align-items:center}.fork .cols>.col{width:100%}}
   </style>
@@ -671,6 +721,66 @@
     document.getElementById('print-btn').addEventListener('click', () => {
       window.print();
     });
+
+    // Cria um novo arquivo HTML autônomo com o editor zerado
+    async function createNewHtmlFile() {
+    let fileName = prompt("Qual o nome do novo arquivo HTML?", "fluxo_secundario");
+    if (!fileName) return;
+
+    fileName = fileName.trim();
+    if (!fileName.endsWith('.html')) {
+        fileName += '.html';
+    }
+
+    // Define o título visual e limpa a estrutura inicial para o novo arquivo
+    const cleanTitle = fileName.replace('.html', '').replace(/[_-]/g, ' ').toUpperCase();
+    const initialSeed = `[
+        {
+            "id": "node_1",
+            "type": "start",
+            "title": "Início: ${cleanTitle}",
+            "text": "Subfluxo independente iniciado."
+        }
+        ]`;
+
+    // Clona o HTML atual e substitui o fluxo salvo pelo fluxo zerado
+    let editorHtml = document.documentElement.outerHTML;
+    editorHtml = editorHtml.replace(
+        /let flowTree = JSON\.parse\(localStorage\.getItem\('colmeia_flow_save'\)\) \|\| \[[\s\S]*?\];/m,
+        `let flowTree = ${initialSeed};`
+    );
+
+    const fullHtmlDocument = `<!DOCTYPE html>\n` + editorHtml;
+
+    // 1. Tenta salvar na pasta via diálogo nativo do sistema operacional (Chrome / Edge / Opera)
+    if (window.showSaveFilePicker) {
+        try {
+        const handle = await window.showSaveFilePicker({
+            suggestedName: fileName,
+            types: [{
+            description: 'Arquivo HTML',
+            accept: { 'text/html': ['.html'] }
+            }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(fullHtmlDocument);
+        await writable.close();
+        alert(`✅ Arquivo "${fileName}" criado com sucesso!\nVocê já pode referenciá-lo no botão de Próxima Jornada.`);
+        return;
+        } catch (err) {
+        if (err.name === 'AbortError') return; // Cancelado pelo usuário
+        }
+    }
+
+    // 2. Fallback clássico: download direto do arquivo
+    const blob = new Blob([fullHtmlDocument], { type: 'text/html;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    }
+
 
     // Inicializa a aplicação
     init();

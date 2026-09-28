@@ -872,3 +872,54 @@ button.primary:hover {
     background: #fff;
   }
 }
+
+
+/* ==========================================================================
+   PRÓXIMA JORNADA (JUMP / SALTO ENTRE ARQUIVOS)
+   ========================================================================== */
+
+/* Botão do Editor Lateral */
+.btn-journey {
+  background: var(--mint);
+  border-color: var(--deep);
+  color: var(--deep);
+  font-weight: 600;
+}
+
+/* Card de Configuração */
+.card-journey { border-left: 4px solid var(--deep); }
+.badge-journey { background: var(--mint); color: var(--deep); }
+
+/* Pílula no Canvas (Conforme o exemplo do cliente) */
+.jump {
+  display: block;
+  text-decoration: none;
+  border: 1.5px solid var(--deep);
+  background: var(--mint);
+  color: var(--deep);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  max-width: 320px;
+  margin: 0 auto;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 4px rgba(39, 96, 58, 0.08);
+}
+.jump:hover {
+  background: var(--deep);
+  color: #FFFFFF;
+  box-shadow: 0 4px 8px rgba(39, 96, 58, 0.2);
+}
+.jump strong {
+  display: block;
+  font-size: 13.5px;
+  margin-bottom: 2px;
+}
+.jump span {
+  font-size: 11.5px;
+  font-weight: normal;
+  opacity: 0.95;
+}
+
