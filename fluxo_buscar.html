@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Criador Dinâmico de Fluxogramas ColmeIA</title>
+  <link rel="stylesheet" href="static/css/flowchart.css">
+</head>
+<body>
+
+  <!-- Barra Superior de Controle -->
+  <header class="bar">
+    <div class="brand">
+      <span class="logo-icon">🐝</span>
+      <h1>Criador de Fluxogramas ColmeIA</h1>
+    </div>
+    <div class="actions">
+        <button type="button" id="toggle-sidebar-btn" onclick="toggleSidebar()">👁️ Ocultar Controles</button>
+        <button type="button" class="primary" onclick="createNewHtmlFile()">📄 Novo</button>
+        <button type="button" class="btn-danger-text" onclick="clearAllNodes()">🗑️ Limpar Tudo</button>
+        <button type="button" id="import-btn">📂 Carregar Rascunho</button>
+        <button type="button" id="export-json-btn">💾 Baixar JSON</button>
+        <button type="button" id="save-html-btn" class="primary">⚡ Baixar HTML Pronto</button>
+        <button type="button" id="print-btn">🖨️ Imprimir / PDF</button>
+        <button type="button" id="ajuda-btn" onclick="window.open('ajuda.html', '_blank')">❓ Ajuda</button>
+    </div>
+  </header>
+
+  <!-- Janela Principal Dividida -->
+  <div class="app-layout">
+    
+    <!-- Painel Lateral: Editor Estrutural -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Estrutura do Fluxo</h2>
+        <p class="help-text">Monte seu fluxo adicionando blocos na raiz ou nos ramos das decisões.</p>
+      </div>
+
+      <!-- Barra Rápida de Inserção na Raiz -->
+      <div class="quick-add-bar">
+        <span class="quick-add-title">➕ Adicionar na Raiz:</span>
+        <div class="quick-buttons">
+          <button type="button" class="btn-node btn-start" onclick="addNodeToRoot('start')">Root</button>
+          <button type="button" class="btn-node btn-msg" onclick="addNodeToRoot('msg')">Fraseologia</button>
+          <button type="button" class="btn-node btn-decision" onclick="addNodeToRoot('decision')">Decisão</button>
+          <button type="button" class="btn-node btn-api" onclick="addNodeToRoot('api')">API</button>
+          <button type="button" class="btn-node btn-end" onclick="addNodeToRoot('end')">Fim do Bot</button>
+          <button type="button" class="btn-node btn-data" onclick="addNodeToRoot('data')">Base Dados</button>
+          <button type="button" class="btn-node btn-function" onclick="addNodeToRoot('function')">Função</button>
+          <button type="button" class="btn-node btn-metadado" onclick="addNodeToRoot('metadado')">Metadado</button>
+          <button type="button" class="btn-node btn-menu" onclick="addNodeToRoot('menu')">Item de Menu</button>
+          <button type="button" class="btn-node btn-forms" onclick="addNodeToRoot('forms')">ColmeIA Forms</button>
+          <button type="button" class="btn-node btn-validation" onclick="addNodeToRoot('validation')">Validação</button>
+          <button type="button" class="btn-node btn-human" onclick="addNodeToRoot('human')">Atendimento Humano</button>
+          <button type="button" class="btn-node btn-hub" onclick="addNodeToRoot('hub')">Decision Hub</button>
+          <button type="button" class="btn-node btn-journey" onclick="addNodeToRoot('journey')">Próxima Jornada</button>
+        </div>
+      </div>
+
+      <!-- Lista de Cards Editor (Árvore) -->
+      <div id="tree-editor" class="tree-editor"><div class="editor-card card-start">
+          <div class="card-header">
+            <span class="badge badge-start">ROOT</span>
+            <div class="card-tools">
+              
+              <button type="button" title="Descer" onclick="moveNode('node_1', 1)">⬇️</button>
+              <button type="button" title="Excluir Bloco" onclick="deleteNode('node_1')">🗑️</button>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Título / Rótulo do Botão</label>
+            <input type="text" value="Root" oninput="updateField('node_1', 'title', this.value)">
+          </div>
+          <div class="form-field">
+            <label>Subtítulo / Descrição</label>
+            <textarea rows="2" oninput="updateField('node_1', 'text', this.value)">Disparo de fluxo de entrada da ColmeIA</textarea>
+          </div>
+        </div><div class="editor-card card-msg">
+          <div class="card-header">
+            <span class="badge badge-msg">MSG</span>
+            <div class="card-tools">
+              <button type="button" title="Subir" onclick="moveNode('node_2', -1)">⬆️</button>
+              <button type="button" title="Descer" onclick="moveNode('node_2', 1)">⬇️</button>
+              <button type="button" title="Excluir Bloco" onclick="deleteNode('node_2')">🗑️</button>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Título / Rótulo do Botão</label>
+            <input type="text" value="Fraseologia Inicial" oninput="updateField('node_2', 'title', this.value)">
+          </div>
+          <div class="form-field">
+            <label>Subtítulo / Descrição</label>
+            <textarea rows="2" oninput="updateField('node_2', 'text', this.value)">Olá! Como posso te ajudar hoje?</textarea>
+          </div>
+        </div><div class="editor-card card-decision">
+          <div class="card-header">
+            <span class="badge badge-decision">DECISION</span>
+            <div class="card-tools">
+              <button type="button" title="Subir" onclick="moveNode('node_3', -1)">⬆️</button>
+              
+              <button type="button" title="Excluir Bloco" onclick="deleteNode('node_3')">🗑️</button>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Título / Rótulo do Botão</label>
+            <input type="text" value="Decisão do Usuário" oninput="updateField('node_3', 'title', this.value)">
+          </div>
+          <div class="form-field">
+            <label>Subtítulo / Descrição</label>
+            <textarea rows="2" oninput="updateField('node_3', 'text', this.value)">O cliente deseja atendimento de vagas?</textarea>
+          </div>
+        <div class="branches-editor"><div class="branches-title">
+            <span>Ramos / Caminhos da Decisão:</span>
+            <button type="button" class="btn-xs" onclick="addBranch('node_3')">➕ Novo Ramo</button>
+          </div><div class="branch-box">
+              <div class="branch-box-header">
+                <span class="branch-tag-pill">Caminho:</span>
+                <input type="text" value="Sim" oninput="updateBranchLabel('node_3', 'b_sim', this.value)">
+                <button type="button" class="delete-branch-btn" title="Excluir caminho" onclick="deleteBranch('node_3', 'b_sim')">❌</button>
+              </div>
+              <div class="branch-children" id="branch-container-b_sim"><div class="editor-card card-api">
+          <div class="card-header">
+            <span class="badge badge-api">API</span>
+            <div class="card-tools">
+              
+              <button type="button" title="Descer" onclick="moveNode('node_3_1', 1)">⬇️</button>
+              <button type="button" title="Excluir Bloco" onclick="deleteNode('node_3_1')">🗑️</button>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Título / Rótulo do Botão</label>
+            <input type="text" value="INTEGRAÇÃO API" oninput="updateField('node_3_1', 'title', this.value)">
+          </div>
+          <div class="form-field">
+            <label>Subtítulo / Descrição</label>
+            <textarea rows="2" oninput="updateField('node_3_1', 'text', this.value)">GET /api/v1/vagas-disponiveis</textarea>
+          </div>
+        </div><div class="editor-card card-journey">
+          <div class="card-header">
+            <span class="badge badge-journey">PRÓXIMA JORNADA</span>
+            <div class="card-tools">
+              <button type="button" title="Subir" onclick="moveNode('node_3_2', -1)">⬆️</button>
+              <button type="button" title="Descer" onclick="moveNode('node_3_2', 1)">⬇️</button>
+              <button type="button" title="Excluir Bloco" onclick="deleteNode('node_3_2')">🗑️</button>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Título / Rótulo do Botão</label>
+            <input type="text" value="Ir para o Fluxo D" oninput="updateField('node_3_2', 'title', this.value)">
+          </div>
+          <div class="form-field">
+            <label>Subtítulo / Descrição</label>
+            <textarea rows="2" oninput="updateField('node_3_2', 'text', this.value)">Opção buscar mais vagas -&gt; Segue para o trecho D</textarea>
+          </div>
+        <div class="form-field">
+            <label>🔗 Link / URL de Destino do Fluxo</label>
+            <input type="text" placeholder="ex: fluxo_vagas.html ou #trecho-c" value="fluxo_vagas.html" oninput="updateField('node_3_2', 'url', this.value)">
+            <small style="font-size: 11px; color: var(--soft); display: block; margin-top: 3px;">
+              Insira o nome do outro arquivo HTML (ex: fluxo_b.html) ou um site externo para abrir ao clicar.
+            </small>
+          </div></div><div class="editor-card card-forms">
+          <div class="card-header">
+            <span class="badge badge-forms">FORMS</span>
+            <div class="card-tools">
+              <button type="button" title="Subir" onclick="moveNode('node_1790643617292_7wr3', -1)">⬆️</button>
+              
+              <button type="button" title="Excluir Bloco" onclick="deleteNode('node_1790643617292_7wr3')">🗑️</button>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Título / Rótulo do Botão</label>
+            <input type="text" value="ColmeIA Forms" oninput="updateField('node_1790643617292_7wr3', 'title', this.value)">
+          </div>
+          <div class="form-field">
+            <label>Subtítulo / Descrição</label>
+            <textarea rows="2" oninput="updateField('node_1790643617292_7wr3', 'text', this.value)">Formulário: cadastro_estudante</textarea>
+          </div>
+        </div></div>
+              
+              <!-- Seletor Rápido de Nós Dentro do Caminho de Decisão -->
+              <div class="branch-quick-add">
+                <span class="quick-add-sub">Adicionar neste lado:</span>
+                <div class="quick-buttons-sm">
+                  <button type="button" class="btn-sm btn-msg" onclick="addNodeToBranch('b_sim', 'msg')">+ Fraseologia</button>
+                  <button type="button" class="btn-sm btn-api" onclick="addNodeToBranch('b_sim', 'api')">+ API</button>
+                  <button type="button" class="btn-sm btn-decision" onclick="addNodeToBranch('b_sim', 'decision')">+ Decisão</button>
+                  <button type="button" class="btn-sm btn-end" onclick="addNodeToBranch('b_sim', 'end')">+ Fim do Bot</button>
+                  <button type="button" class="btn-sm btn-data" onclick="addNodeToBranch('b_sim', 'data')">+ Base Dados</button>
+                  <button type="button" class="btn-sm btn-function" onclick="addNodeToBranch('b_sim', 'function')">+ Função </button>
+                  <button type="button" class="btn-sm btn-metadado" onclick="addNodeToBranch('b_sim', 'metadado')">+ Metadado</button>
+                  <button type="button" class="btn-sm btn-menu" onclick="addNodeToBranch('b_sim', 'menu')">+ Item Menu</button>
+                  <button type="button" class="btn-sm btn-forms" onclick="addNodeToBranch('b_sim', 'forms')">+ ColmeIA Forms</button>
+                  <button type="button" class="btn-sm btn-validation" onclick="addNodeToBranch('b_sim', 'validation')">+ Validação</button>
+                  <button type="button" class="btn-sm btn-human" onclick="addNodeToBranch('b_sim', 'human')">+ Atend. Humano</button>
+                  <button type="button" class="btn-sm btn-hub" onclick="addNodeToBranch('b_sim', 'hub')">+ Decision Hub</button>
+                  <button type="button" class="btn-sm btn-journey" onclick="addNodeToBranch('b_sim', 'journey')">+ Próxima Jornada</button>
+                </div>
+              </div>
+            </div><div class="branch-box">
+              <div class="branch-box-header">
+                <span class="branch-tag-pill">Caminho:</span>
+                <input type="text" value="Não" oninput="updateBranchLabel('node_3', 'b_nao', this.value)">
+                <button type="button" class="delete-branch-btn" title="Excluir caminho" onclick="deleteBranch('node_3', 'b_nao')">❌</button>
+              </div>
+              <div class="branch-children" id="branch-container-b_nao"><div class="editor-card card-human">
+          <div class="card-header">
+            <span class="badge badge-human">HUMAN</span>
+            <div class="card-tools">
+              
+              
+              <button type="button" title="Excluir Bloco" onclick="deleteNode('node_3_3')">🗑️</button>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Título / Rótulo do Botão</label>
+            <input type="text" value="Atendimento Humano" oninput="updateField('node_3_3', 'title', this.value)">
+          </div>
+          <div class="form-field">
+            <label>Subtítulo / Descrição</label>
+            <textarea rows="2" oninput="updateField('node_3_3', 'text', this.value)">Transferindo para a fila de suporte humano...</textarea>
+          </div>
+        </div></div>
+              
+              <!-- Seletor Rápido de Nós Dentro do Caminho de Decisão -->
+              <div class="branch-quick-add">
+                <span class="quick-add-sub">Adicionar neste lado:</span>
+                <div class="quick-buttons-sm">
+                  <button type="button" class="btn-sm btn-msg" onclick="addNodeToBranch('b_nao', 'msg')">+ Fraseologia</button>
+                  <button type="button" class="btn-sm btn-api" onclick="addNodeToBranch('b_nao', 'api')">+ API</button>
+                  <button type="button" class="btn-sm btn-decision" onclick="addNodeToBranch('b_nao', 'decision')">+ Decisão</button>
+                  <button type="button" class="btn-sm btn-end" onclick="addNodeToBranch('b_nao', 'end')">+ Fim do Bot</button>
+                  <button type="button" class="btn-sm btn-data" onclick="addNodeToBranch('b_nao', 'data')">+ Base Dados</button>
+                  <button type="button" class="btn-sm btn-function" onclick="addNodeToBranch('b_nao', 'function')">+ Função </button>
+                  <button type="button" class="btn-sm btn-metadado" onclick="addNodeToBranch('b_nao', 'metadado')">+ Metadado</button>
+                  <button type="button" class="btn-sm btn-menu" onclick="addNodeToBranch('b_nao', 'menu')">+ Item Menu</button>
+                  <button type="button" class="btn-sm btn-forms" onclick="addNodeToBranch('b_nao', 'forms')">+ ColmeIA Forms</button>
+                  <button type="button" class="btn-sm btn-validation" onclick="addNodeToBranch('b_nao', 'validation')">+ Validação</button>
+                  <button type="button" class="btn-sm btn-human" onclick="addNodeToBranch('b_nao', 'human')">+ Atend. Humano</button>
+                  <button type="button" class="btn-sm btn-hub" onclick="addNodeToBranch('b_nao', 'hub')">+ Decision Hub</button>
+                  <button type="button" class="btn-sm btn-journey" onclick="addNodeToBranch('b_nao', 'journey')">+ Próxima Jornada</button>
+                </div>
+              </div>
+            </div></div></div></div>
+    </aside>
+
+    <!-- Canvas de Visualização em Tempo Real -->
+    <main class="canvas-viewport">
+      <div class="wrap">
+        <div class="stage" id="flowchart-canvas"><div class="node start"><strong>Root</strong><p>Disparo de fluxo de entrada da ColmeIA</p></div><div class="link"></div><div class="node msg"><strong>Fraseologia Inicial</strong><p>Olá! Como posso te ajudar hoje?</p></div><div class="link"></div><div class="fork-group-wrapper"><div class="node decision"><strong>Decisão do Usuário</strong><p>O cliente deseja atendimento de vagas?</p></div><div class="link"></div><div class="fork"><div class="bar-h" style="width: 50%;"></div><div class="cols"><div class="col"><div class="tag">Sim</div><div class="link"></div><div class="node api"><span class="k">INTEGRAÇÃO API</span><span class="t">GET /api/v1/vagas-disponiveis</span></div><div class="link"></div><a class="jump" href="fluxo_secundario.html" target="_blank"><strong>Ir para o Fluxo D</strong><span>Opção buscar mais vagas -&gt; Segue para o trecho D</span></a><div class="link"></div><div class="node forms"><strong>ColmeIA Forms</strong><p>Formulário: cadastro_estudante</p></div></div><div class="col"><div class="tag">Não</div><div class="link"></div><div class="node human"><strong>Atendimento Humano</strong><p>Transferindo para a fila de suporte humano...</p></div></div></div></div></div></div>
+      </div>
+    </main>
+
+  </div>
+
+  <input type="file" id="import-file" accept=".json" style="display: none;">
+
+  <!-- Script do Motor do Editor -->
+  <script src="static/js/index.js"></script>
+
+
+</body></html>
