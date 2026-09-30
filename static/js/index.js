@@ -8,126 +8,153 @@
     }
 
     // Adicione esta função ao seu arquivo index.js
-    function highlightEditorCard(nodeId) {
-    const allCards = document.querySelectorAll('.editor-card');
-    allCards.forEach(c => c.classList.remove('card-highlight'));
+function highlightEditorCard(nodeId) {
+  // 1. Limpa destaques anteriores (painel lateral e canvas)
+  const allCards = document.querySelectorAll('.editor-card');
+  allCards.forEach(c => c.classList.remove('card-highlight'));
 
-    const card = document.querySelector(`[data-node-id="${nodeId}"]`);
-    if (card) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        card.classList.add('card-highlight');
-        setTimeout(() => {
-        card.classList.remove('card-highlight');
-        }, 1500); // Remove o destaque após 1.5 segundos
-    }
-    }
+  const allGlowNodes = document.querySelectorAll('.node-highlight-glow');
+  allGlowNodes.forEach(n => n.classList.remove('node-highlight-glow'));
 
+  // 2. Destaca e rola até o card no painel lateral
+  const card = document.querySelector(`.editor-card[data-node-id="${nodeId}"]`);
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.classList.add('card-highlight');
+    setTimeout(() => {
+      card.classList.remove('card-highlight');
+    }, 1500); // Remove o destaque após 1.5 segundos
+  }
 
-    // Recupera dados automáticos do LocalStorage para não perder as alterações ao atualizar
-    let flowTree = JSON.parse(localStorage.getItem('colmeia_flow_save')) || [
+  // 3. Destaca o nó correspondente no Canvas
+  const canvasNode = document.querySelector(
+    `#flowchart-canvas [data-node-id="${nodeId}"], #flowchart-canvas [data-id="${nodeId}"], #flowchart-canvas #node-${nodeId}`
+  );
+  if (canvasNode) {
+    canvasNode.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    canvasNode.classList.add('node-highlight-glow');
+    setTimeout(() => {
+      canvasNode.classList.remove('node-highlight-glow');
+    }, 2000); // Mantém o brilho no canvas por 2 segundos
+  }
+}
+
+// Recupera dados automáticos do LocalStorage para não perder as alterações ao atualizar
+let flowTree = JSON.parse(localStorage.getItem('colmeia_flow_save')) || [
+  {
+    id: "node_1",
+    type: "start",
+    title: "Root",
+    text: "Disparo de fluxo de entrada da ColmeIA"
+  },
+  {
+    id: "node_2",
+    type: "msg",
+    title: "Fraseologia Inicial",
+    text: "Olá! Como posso te ajudar hoje?"
+  },
+  {
+    id: "node_3",
+    type: "decision",
+    title: "Decisão do Usuário",
+    text: "O cliente deseja atendimento de vagas?",
+    branches: [
       {
-        id: "node_1",
-        type: "start",
-        title: "Root",
-        text: "Disparo de fluxo de entrada da ColmeIA"
-      },
-      {
-        id: "node_2",
-        type: "msg",
-        title: "Fraseologia Inicial",
-        text: "Olá! Como posso te ajudar hoje?"
-      },
-      {
-        id: "node_3",
-        type: "decision",
-        title: "Decisão do Usuário",
-        text: "O cliente deseja atendimento de vagas?",
-        branches: [
+        id: "b_sim",
+        label: "Sim",
+        children: [
           {
-            id: "b_sim",
-            label: "Sim",
-            children: [
-              {
-                id: "node_3_1",
-                type: "api",
-                title: "INTEGRAÇÃO API",
-                text: "GET /api/v1/vagas-disponiveis"
-              },
-              {
-                id: "node_3_2",
-                type: "journey",
-                title: "Ir para o Fluxo D",
-                text: "Opção buscar mais vagas -> Segue para o trecho D",
-                url: "fluxo_vagas.html"
-              }
-            ]
+            id: "node_3_1",
+            type: "api",
+            title: "INTEGRAÇÃO API",
+            text: "GET /api/v1/vagas-disponiveis"
           },
           {
-            id: "b_nao",
-            label: "Não",
-            children: [
-              {
-                id: "node_3_3",
-                type: "human",
-                title: "Atendimento Humano",
-                text: "Transferindo para a fila de suporte humano..."
-              }
-            ]
+            id: "node_3_2",
+            type: "journey",
+            title: "Ir para o Fluxo D",
+            text: "Opção buscar mais vagas -> Segue para o trecho D",
+            url: "fluxo_vagas.html"
+          }
+        ]
+      },
+      {
+        id: "b_nao",
+        label: "Não",
+        children: [
+          {
+            id: "node_3_3",
+            type: "human",
+            title: "Atendimento Humano",
+            text: "Transferindo para a fila de suporte humano..."
           }
         ]
       }
-    ];
+    ]
+  }
+];
 
-    const treeEditorEl = document.getElementById('tree-editor');
-    const flowchartCanvasEl = document.getElementById('flowchart-canvas');
+const treeEditorEl = document.getElementById('tree-editor');
+const flowchartCanvasEl = document.getElementById('flowchart-canvas');
 
-    // Inicialização da aplicação
-    function init() {
-      renderEditor();
-      renderCanvas();
-    }
+// Inicialização da aplicação
+function init() {
+  renderEditor();
+  renderCanvas();
+}
 
-    // Grava o estado atual no navegador em tempo de execução
-    function autoSave() {
-      localStorage.setItem('colmeia_flow_save', JSON.stringify(flowTree));
-    }
+// Grava o estado atual no navegador em tempo de execução
+function autoSave() {
+  localStorage.setItem('colmeia_flow_save', JSON.stringify(flowTree));
+}
 
-    // RENDERIZAÇÃO DO EDITOR (PAINEL LATERAL)
-    function renderEditor() {
-      autoSave();
-      treeEditorEl.innerHTML = '';
+// RENDERIZAÇÃO DO EDITOR (PAINEL LATERAL)
+function renderEditor() {
+  autoSave();
+  treeEditorEl.innerHTML = '';
 
-      // Trata Estado Vazio (Criar do zero)
-      if (!flowTree || flowTree.length === 0) {
-        treeEditorEl.innerHTML = `
-          <div class="empty-state-editor">
-            <span class="empty-icon">🌱</span>
-            <h3>Fluxo Vazio</h3>
-            <p>Seu fluxo está limpo. Escolha qualquer bloco acima no menu para começar seu projeto do zero!</p>
-            <div class="empty-actions">
-              <button type="button" class="btn-node btn-start" onclick="addNodeToRoot('start')">Começar com Root</button>
-              <button type="button" class="btn-node btn-msg" onclick="addNodeToRoot('msg')">Começar com Fraseologia</button>
-            </div>
-          </div>
-        `;
-        return;
-      }
+  // Trata Estado Vazio (Criar do zero)
+  if (!flowTree || flowTree.length === 0) {
+    treeEditorEl.innerHTML = `
+      <div class="empty-state-editor">
+        <span class="empty-icon">🌱</span>
+        <h3>Fluxo Vazio</h3>
+        <p>Seu fluxo está limpo. Escolha qualquer bloco acima no menu para começar seu projeto do zero!</p>
+        <div class="empty-actions">
+          <button type="button" class="btn-node btn-start" onclick="addNodeToRoot('start')">Começar com Root</button>
+          <button type="button" class="btn-node btn-msg" onclick="addNodeToRoot('msg')">Começar com Fraseologia</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
 
-      renderEditorNodeList(flowTree, treeEditorEl);
-    }
+  renderEditorNodeList(flowTree, treeEditorEl);
+}
 
-    function renderEditorNodeList(nodes, containerEl) {
+function renderEditorNodeList(nodes, containerEl) {
   nodes.forEach((node, index) => {
     const card = document.createElement('div');
     card.className = `editor-card card-${node.type}`;
-    card.setAttribute('data-node-id', node.id); // LINHA ADICIONADA
+    card.setAttribute('data-node-id', node.id);
 
     let displayBadge = node.type === 'start' ? 'ROOT' : node.type.toUpperCase();
     if (node.type === 'journey') displayBadge = 'PRÓXIMA JORNADA';
 
+    // ADIÇÃO DO BLOCO DE ID COPIÁVEL
+    const idBadge = `
+      <span 
+        class="badge" 
+        style="background:#F1F5F9; color:#475569; cursor:pointer; font-family:monospace;" 
+        title="Clique para copiar o ID deste bloco" 
+        onclick="navigator.clipboard.writeText('${node.id}'); alert('ID copiado: ${node.id}')">
+        📋 ID: ${node.id}
+      </span>`;
+
     card.innerHTML = `
       <div class="card-header">
         <span class="badge badge-${node.type}">${displayBadge}</span>
+        ${idBadge}
         <div class="card-tools">
           ${index > 0 ? `<button type="button" title="Subir" onclick="moveNode('${node.id}', -1)">⬆️</button>` : ''}
           ${index < nodes.length - 1 ? `<button type="button" title="Descer" onclick="moveNode('${node.id}', 1)">⬇️</button>` : ''}
@@ -149,9 +176,9 @@
       urlField.className = 'form-field';
       urlField.innerHTML = `
         <label>🔗 Link / URL de Destino do Fluxo</label>
-        <input type="text" placeholder="ex: fluxo_vagas.html ou #trecho-c" value="${escapeHtml(node.url || '')}" oninput="updateField('${node.id}', 'url', this.value)">
+        <input type="text" placeholder="ex: fluxo_vagas.html ou #${node.id}" value="${escapeHtml(node.url || '')}" oninput="updateField('${node.id}', 'url', this.value)">
         <small style="font-size: 11px; color: var(--soft); display: block; margin-top: 3px;">
-          Insira o nome do outro arquivo HTML (ex: fluxo_b.html) ou um site externo para abrir ao clicar.
+          Insira um link externo, o nome de outro arquivo HTML ou o ID de um bloco deste fluxo (copie clicando no badge de ID acima).
         </small>
       `;
       card.appendChild(urlField);
@@ -213,6 +240,8 @@
     containerEl.appendChild(card);
   });
 }
+
+
 
 
     // RENDERIZAÇÃO VISUAL 
@@ -298,18 +327,45 @@
     } else if (node.type === 'journey') {
       el = document.createElement('a');
       el.className = 'jump';
-      el.href = node.url || '#';
-      el.target = (node.url && !node.url.startsWith('#')) ? '_blank' : '_self';
+      
+      // Valida se o link aponta para um bloco existente no próprio canvas
+      const cleanUrl = (node.url || '#').trim();
+      const isInternalNode = document.querySelector(`[data-node-id="${cleanUrl.replace(/^#/, '')}"]`) || flowTree.some(n => n.id === cleanUrl);
+
+      el.href = isInternalNode ? `#${cleanUrl.replace(/^#/, '')}` : cleanUrl;
+      el.target = isInternalNode ? '_self' : '_blank';
       el.innerHTML = `<strong>${escapeHtml(node.title)}</strong><span>${escapeHtml(node.text)}</span>`;
       
-      // Adiciona o atributo e o listener de clique
       el.setAttribute('data-node-id', node.id);
+      
       el.addEventListener('click', (event) => {
-        event.preventDefault();
-        highlightEditorCard(node.id);
-        // Abre o link somente se não for uma âncora interna
-        if (el.href && !el.href.endsWith('#')) {
+        const targetId = cleanUrl.replace(/^#/, '');
+        const targetNodeEl = document.querySelector(`[data-node-id="${targetId}"]`);
+        
+        // Se encontrar o bloco correspondente no Canvas, executa a rolagem suave e dá destaque
+        if (targetNodeEl) {
+          event.preventDefault(); // Evita a navegação de nova página
+          
+          // Rola suavemente até o elemento centralizado vertical e horizontalmente
+          targetNodeEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+          
+          // Pisca a borda do nó de destino em evidência
+          targetNodeEl.classList.remove('node-highlight-glow');
+          void targetNodeEl.offsetWidth; // Força repintura para reiniciar a animação
+          targetNodeEl.classList.add('node-highlight-glow');
+          
+          setTimeout(() => {
+            targetNodeEl.classList.remove('node-highlight-glow');
+          }, 2000);
+
+          // Rola também a barra lateral de controle até o card de configurações
+          highlightEditorCard(targetId);
+        } else {
+          // Se for um link externo (como fluxo_b.html), executa a navegação padrão
+          highlightEditorCard(node.id);
+          if (el.href && !el.href.endsWith('#')) {
             window.open(el.href, el.target);
+          }
         }
       });
       
@@ -324,7 +380,6 @@
         el.innerHTML = `<strong>${escapeHtml(node.title)}</strong><p>${escapeHtml(node.text)}</p>`;
       }
 
-      // Adiciona o listener de clique
       el.addEventListener('click', () => highlightEditorCard(node.id));
     }
 
@@ -539,7 +594,7 @@
     }
 
 
-    // Baixa o HTML estático completo (Pronto para visualização externa)
+        // Baixa o HTML estático completo (Pronto para visualização externa)
     document.getElementById('save-html-btn').addEventListener('click', () => {
       if (!flowTree || flowTree.length === 0) {
         alert("Adicione pelo menos um bloco antes de baixar o arquivo HTML!");
@@ -550,12 +605,14 @@
       const staticHtml = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐝</text></svg>">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Fluxograma ColmeIA Exportado</title>
   <style>
     :root{--canvas:#EEF2EC;--paper:#FFFFFF;--ink:#17251B;--soft:#55675A;--line:#B4C4B8;--green:#3C8C50;--deep:#27603A;--mint:#DEEFE1;--dark:#1E2B22;--sky-blue:#0284C7;--gibi-blue:#ECF8FF;--gibi-border:#1E2B22;--color-data:#7C3AED;--color-function:#06B6D4;--color-metadado:#0D9488;--color-menu:#00bbff;--color-forms:#D4A359;--color-validation:#22C55E;--color-human:#2c2a2aad;--color-hub:#6366F1;--node-max-width:380px}
     *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
     body{margin:0;background:var(--canvas);color:var(--ink);font-family:system-ui,-apple-system,sans-serif;padding:40px 20px}
     .wrap{max-width:1400px;margin:0 auto}
     .stage{display:flex;flex-direction:column;align-items:center}
@@ -568,7 +625,7 @@
     .fork .cols>.col{flex:1 1 280px;min-width:280px;display:flex;flex-direction:column;align-items:center}
     .fork .cols>.col::before{content:"";width:0;border-left:2px solid var(--line);height:22px;position:relative;margin:0 auto}
     .tag{font-size:12.5px;color:var(--deep);background:var(--mint);border:1px solid rgba(39,96,58,.25);border-radius:999px;padding:3px 12px;margin:6px 0 0;text-align:center;white-space:nowrap}
-    .node{width:100%;max-width:var(--node-max-width);border-radius:8px;padding:12px 16px;text-align:center;word-break:break-word}
+    .node{width:100%;max-width:var(--node-max-width);border-radius:8px;padding:12px 16px;text-align:center;word-break:break-word;cursor:pointer}
     .node strong{display:block;font-size:14px;margin-bottom:4px}
     .node p{margin:0;font-size:13px;color:var(--soft)}
     .start{background:var(--sky-blue);color:#fff;border-radius:6px;max-width:320px}
@@ -584,7 +641,7 @@
     .decision{background:var(--paper);border:2px solid var(--green);padding:14px 28px;max-width:330px;clip-path:polygon(20px 0,calc(100% - 20px) 0,100% 50%,calc(100% - 20px) 100%,20px 100%,0 50%)}
     
     /* Botão de Salto Estilizado */
-    .jump{display:block;text-decoration:none;border:1.5px solid var(--deep);background:var(--mint);color:var(--deep);border-radius:999px;padding:8px 18px;font-size:13px;font-weight:600;text-align:center;max-width:320px;transition:all 0.15s ease}
+    .jump{display:block;text-decoration:none;border:1.5px solid var(--deep);background:var(--mint);color:var(--deep);border-radius:999px;padding:8px 18px;font-size:13px;font-weight:600;text-align:center;max-width:320px;transition:all 0.15s ease;cursor:pointer}
     .jump:hover{background:var(--deep);color:#fff}
     .jump strong{display:block;font-size:13.5px}
     .jump span{font-size:11.5px;font-weight:normal;opacity:0.9}
@@ -609,6 +666,29 @@
     .human p{font-size:11px}
     .hub{background:#EEF2FF;border:2px solid var(--color-hub);color:var(--ink);border-radius:6px;max-width:320px}
     .hub strong{color:var(--color-hub)}
+
+    /* Animação e classe de evidência para o Canvas exportado */
+    @keyframes glow-attention {
+      0% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 0px rgba(60, 140, 80, 0));
+      }
+      50% {
+        transform: scale(1.05);
+        filter: drop-shadow(0 0 14px var(--green)) drop-shadow(0 0 5px var(--green));
+      }
+      100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 0px rgba(60, 140, 80, 0));
+      }
+    }
+
+    .node-highlight-glow {
+      animation: glow-attention 1.2s ease-in-out 2;
+      z-index: 9999 !important;
+      position: relative;
+    }
+
     @media(max-width:860px){.fork .bar-h{display:none}.fork .cols{flex-direction:column;align-items:center}.fork .cols>.col{width:100%}}
   </style>
 </head>
@@ -618,6 +698,39 @@
       ${canvasHtml}
     </div>
   </div>
+
+  <script>
+    function triggerGlow(element) {
+      if (!element) return;
+      element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+      element.classList.remove('node-highlight-glow');
+      void element.offsetWidth; // Força reinício da animação
+      element.classList.add('node-highlight-glow');
+      setTimeout(() => {
+        element.classList.remove('node-highlight-glow');
+      }, 2400);
+    }
+
+    // Clique em botão "Próxima Jornada" (saltos internos com #ID)
+    document.querySelectorAll('.jump').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const href = (link.getAttribute('href') || '').trim();
+        if (href.startsWith('#')) {
+          e.preventDefault();
+          const targetId = href.replace(/^#/, '');
+          const targetEl = document.querySelector(\`[data-node-id="\${targetId}"]\`);
+          if (targetEl) {
+            triggerGlow(targetEl);
+          }
+        }
+      });
+    });
+
+    // Clique em nós do fluxograma para ativá-los diretamente
+    document.querySelectorAll('.node').forEach(node => {
+      node.addEventListener('click', () => triggerGlow(node));
+    });
+  <\/script>
 </body>
 </html>`;
 
