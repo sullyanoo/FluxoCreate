@@ -1,6 +1,4 @@
-/* ==========================================================================
-   DESIGN SYSTEM COLMEIA & INTERFACE DO EDITOR
-   ========================================================================== */
+/* DESIGN SYSTEM COLMEIA & INTERFACE DO EDITOR */
 
 body.sidebar-collapsed .sidebar {
     display: none !important;
@@ -18,12 +16,12 @@ body.sidebar-collapsed .sidebar {
   --alert: #B4402F;
   --dark: #1E2B22;
   
-  /* Paleta de Azuis (Root vs Gibi) */
+  /* Paleta de Azuis */
   --sky-blue: #0284C7;          /* Azul do Root (Céu) */
   --sky-blue-light: #E0F2FE;    /* Cor de fundo do Card lateral do Root */
   --sky-blue-hover: #0369A1;
 
-  /* Cor da Fraseologia (Azul Gibi Antigo, mais claro ainda que o Root) */
+  /* Cor da Fraseologia */
   --gibi-blue: #ECF8FF;         /* Azul bebê pastel super claro */
   --gibi-border: #1E2B22;       /* Linha escura forte de nanquim para o gibi */
 
@@ -64,9 +62,7 @@ body {
   overflow: hidden;
 }
 
-/* ==========================================================================
-   BARRA SUPERIOR (HEADER)
-   ========================================================================== */
+/* BARRA SUPERIOR (HEADER) */
 
 .bar {
   display: flex;
@@ -139,10 +135,6 @@ button.primary:hover {
   border-color: var(--alert);
   color: var(--alert);
 }
-
-/* ==========================================================================
-   LAYOUT SPLIT-SCREEN
-   ========================================================================== */
 
 .app-layout {
   display: flex;
@@ -223,9 +215,7 @@ button.primary:hover {
   filter: brightness(0.95);
 }
 
-/* ==========================================================================
-   ESTADOS VAZIOS (EMPTY STATES)
-   ========================================================================== */
+/* ESTADOS VAZIOS */
 
 .empty-state-editor {
   text-align: center;
@@ -295,9 +285,7 @@ button.primary:hover {
   margin-top: 4px;
 }
 
-/* ==========================================================================
-   CARDS DE CONFIGURAÇÃO (PAINEL LATERAL)
-   ========================================================================== */
+/* CARDS DE CONFIGURAÇÃO (PAINEL LATERAL) */
 
 .editor-card {
   background: var(--paper);
@@ -703,7 +691,7 @@ button.primary:hover {
 
 
 
-/* 6. DATA (BASE DE DADOS) - Cilindro de Banco de Dados Tridimensional Autêntico */
+/* 6. DATA (BASE DE DADOS) */
 .data {
   background: var(--paper);
   border: 2px solid var(--color-data);
@@ -871,9 +859,7 @@ button.primary:hover {
   color: var(--color-hub); 
 }
 
-/* ==========================================================================
-   IMPRESSÃO
-   ========================================================================== */
+/* IMPRESSÃO */
 
 @media print {
   .bar, .sidebar {
@@ -892,9 +878,9 @@ button.primary:hover {
 }
 
 
-/* ==========================================================================
-   PRÓXIMA JORNADA (JUMP / SALTO ENTRE ARQUIVOS)
-   ========================================================================== */
+/* 
+   PRÓXIMA JORNADA
+*/
 
 /* Botão do Editor Lateral */
 .btn-journey {
@@ -908,7 +894,6 @@ button.primary:hover {
 .card-journey { border-left: 4px solid var(--deep); }
 .badge-journey { background: var(--mint); color: var(--deep); }
 
-/* Pílula no Canvas (Conforme o exemplo do cliente) */
 .jump {
   display: block;
   text-decoration: none;
@@ -941,7 +926,6 @@ button.primary:hover {
   opacity: 0.95;
 }
 
-
 /* Estilo de Destaque para Card no Editor */
 @keyframes highlight {
   0% { background-color: var(--mint); }
@@ -951,5 +935,58 @@ button.primary:hover {
 
 .card-highlight {
   animation: highlight 0.75s 2; /* Pisca 2 vezes */
+}
+
+/* Animação que deixa o módulo focado em evidência no Canvas */
+@keyframes glow-attention {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(212, 163, 89, 0.7);
+    outline: 3px solid var(--green);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 20px 10px rgba(212, 163, 89, 0.4);
+    outline: 5px solid var(--green);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(212, 163, 89, 0);
+    outline: 0px solid transparent;
+  }
+}
+
+.node-highlight-glow {
+  animation: glow-attention 1s ease-in-out 2; /* Pisca e pulsa 2 vezes */
+  z-index: 9999 !important;
+  position: relative;
+}
+
+
+/* ==========================================================================
+   EFEITO DE EVIDÊNCIA DO BLOCO NO CANVAS (COMPATÍVEL COM CLIP-PATH)
+   ========================================================================== */
+
+@keyframes glow-attention {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px rgba(60, 140, 80, 0));
+  }
+  50% {
+    transform: scale(1.05); /* Ligeiro aumento para dar sensação de foco */
+    filter: drop-shadow(0 0 12px var(--green)) 
+            drop-shadow(0 0 4px var(--green)); /* Brilho neon perfeito que acompanha a geometria */
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px rgba(60, 140, 80, 0));
+  }
+}
+
+/* Classe aplicada via JS ao clicar no botão "Próxima Jornada" */
+.node-highlight-glow {
+  animation: glow-attention 1.2s ease-in-out 2; /* Executa o pulsar 2 vezes */
+  z-index: 9999 !important;
+  position: relative;
 }
 
