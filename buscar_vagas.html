@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fluxogramas ColmeIA Flowchart</title>
+  <link rel="stylesheet" href="static/css/flowchart.css">
+   <link rel="icon" href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;text y=%22.9em%22 font-size=%2290%22&gt;🐝&lt;/text&gt;&lt;/svg&gt;">
+</head>
+<body class="">
+
+  <!-- Barra Superior de Controle -->
+  <header class="bar">
+    <div class="brand">
+      <span class="logo-icon">🐝</span>
+      <h1>Criador de Fluxogramas ColmeIA</h1>
+    </div>
+    <div class="actions">
+        <button type="button" id="toggle-sidebar-btn" onclick="toggleSidebar()">👁️ Ocultar Controles</button>
+        <button type="button" class="primary" onclick="createNewHtmlFile()">📄 Novo</button>
+        <button type="button" class="btn-danger-text" onclick="clearAllNodes()">🗑️ Limpar Tudo</button>
+        <button type="button" id="import-btn">📂 Carregar Rascunho</button>
+        <button type="button" id="export-json-btn">💾 Baixar JSON</button>
+        <button type="button" id="save-html-btn" class="primary">⚡ Baixar HTML Pronto</button>
+        <button type="button" id="print-btn">🖨️ Imprimir / PDF</button>
+        <button type="button" id="ajuda-btn" onclick="window.open('ajuda.html', '_blank')">❓ Ajuda</button>
+    </div>
+  </header>
+
+  <!-- Janela Principal Dividida -->
+  <div class="app-layout">
+    
+    <!-- Painel Lateral: Editor Estrutural -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Estrutura do Fluxo</h2>
+        <p class="help-text">Monte seu fluxo adicionando blocos na raiz ou nos ramos das decisões.</p>
+      </div>
+
+      <!-- Barra Rápida de Inserção na Raiz -->
+      <div class="quick-add-bar">
+        <span class="quick-add-title">➕ Adicionar na Raiz:</span>
+        <div class="quick-buttons">
+          <button type="button" class="btn-node btn-start" onclick="addNodeToRoot('start')">Root</button>
+          <button type="button" class="btn-node btn-msg" onclick="addNodeToRoot('msg')">Fraseologia</button>
+          <button type="button" class="btn-node btn-decision" onclick="addNodeToRoot('decision')">Decisão</button>
+          <button type="button" class="btn-node btn-api" onclick="addNodeToRoot('api')">API</button>
+          <button type="button" class="btn-node btn-end" onclick="addNodeToRoot('end')">Fim do Bot</button>
+          <button type="button" class="btn-node btn-data" onclick="addNodeToRoot('data')">Base Dados</button>
+          <button type="button" class="btn-node btn-function" onclick="addNodeToRoot('function')">Função</button>
+          <button type="button" class="btn-node btn-metadado" onclick="addNodeToRoot('metadado')">Metadado</button>
+          <button type="button" class="btn-node btn-menu" onclick="addNodeToRoot('menu')">Item de Menu</button>
+          <button type="button" class="btn-node btn-forms" onclick="addNodeToRoot('forms')">ColmeIA Forms</button>
+          <button type="button" class="btn-node btn-validation" onclick="addNodeToRoot('validation')">Validação</button>
+          <button type="button" class="btn-node btn-human" onclick="addNodeToRoot('human')">Atendimento Humano</button>
+          <button type="button" class="btn-node btn-hub" onclick="addNodeToRoot('hub')">Decision Hub</button>
+          <button type="button" class="btn-node btn-journey" onclick="addNodeToRoot('journey')">Próxima Jornada</button>
+        </div>
+      </div>
+
+      <!-- Lista de Cards Editor -->
+      <div id="tree-editor" class="tree-editor"><div class="editor-card card-api" data-node-id="node_1790686995220_6a2m">
+      <div class="card-header">
+        <span class="badge badge-api">API</span>
+        <div class="card-tools">
+          
+          <button type="button" title="Descer" onclick="moveNode('node_1790686995220_6a2m', 1)">⬇️</button>
+          <button type="button" title="Excluir Bloco" onclick="deleteNode('node_1790686995220_6a2m')">🗑️</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Título / Rótulo do Botão</label>
+        <input type="text" value="Integração API" oninput="updateField('node_1790686995220_6a2m', 'title', this.value)">
+      </div>
+      <div class="form-field">
+        <label>Subtítulo / Descrição</label>
+        <textarea rows="2" oninput="updateField('node_1790686995220_6a2m', 'text', this.value)">Consulta as agendas disponíveis (até 3 agendas)</textarea>
+      </div>
+    </div><div class="editor-card card-msg" data-node-id="node_1790687014669_ee5o">
+      <div class="card-header">
+        <span class="badge badge-msg">MSG</span>
+        <div class="card-tools">
+          <button type="button" title="Subir" onclick="moveNode('node_1790687014669_ee5o', -1)">⬆️</button>
+          <button type="button" title="Descer" onclick="moveNode('node_1790687014669_ee5o', 1)">⬇️</button>
+          <button type="button" title="Excluir Bloco" onclick="deleteNode('node_1790687014669_ee5o')">🗑️</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Título / Rótulo do Botão</label>
+        <input type="text" value="Fraseologia" oninput="updateField('node_1790687014669_ee5o', 'title', this.value)">
+      </div>
+      <div class="form-field">
+        <label>Subtítulo / Descrição</label>
+        <textarea rows="2" oninput="updateField('node_1790687014669_ee5o', 'text', this.value)">Falta pouco! Agora escolha o melhor horário para a sua entrevista.&lt;br&gt;&lt;br&gt;Agendas disponíveis:</textarea>
+      </div>
+    </div><div class="editor-card card-menu" data-node-id="node_1790687029381_npla">
+      <div class="card-header">
+        <span class="badge badge-menu">MENU</span>
+        <div class="card-tools">
+          <button type="button" title="Subir" onclick="moveNode('node_1790687029381_npla', -1)">⬆️</button>
+          <button type="button" title="Descer" onclick="moveNode('node_1790687029381_npla', 1)">⬇️</button>
+          <button type="button" title="Excluir Bloco" onclick="deleteNode('node_1790687029381_npla')">🗑️</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Título / Rótulo do Botão</label>
+        <input type="text" value="Item de Menu" oninput="updateField('node_1790687029381_npla', 'title', this.value)">
+      </div>
+      <div class="form-field">
+        <label>Subtítulo / Descrição</label>
+        <textarea rows="2" oninput="updateField('node_1790687029381_npla', 'text', this.value)">Agenda 1&lt;br&gt;&lt;br&gt;📅 Data: dd/mm/aaaa   🕐 Horário: hh:mm&lt;br&gt;📋 Tipo da entrevista: xxxxxx</textarea>
+      </div>
+    </div><div class="editor-card card-menu" data-node-id="node_1790687029804_4u0f">
+      <div class="card-header">
+        <span class="badge badge-menu">MENU</span>
+        <div class="card-tools">
+          <button type="button" title="Subir" onclick="moveNode('node_1790687029804_4u0f', -1)">⬆️</button>
+          <button type="button" title="Descer" onclick="moveNode('node_1790687029804_4u0f', 1)">⬇️</button>
+          <button type="button" title="Excluir Bloco" onclick="deleteNode('node_1790687029804_4u0f')">🗑️</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Título / Rótulo do Botão</label>
+        <input type="text" value="Item de Menu" oninput="updateField('node_1790687029804_4u0f', 'title', this.value)">
+      </div>
+      <div class="form-field">
+        <label>Subtítulo / Descrição</label>
+        <textarea rows="2" oninput="updateField('node_1790687029804_4u0f', 'text', this.value)">Agenda 2&lt;br&gt;&lt;br&gt;📅 Data: dd/mm/aaaa   🕐 Horário: hh:mm&lt;br&gt;📋 Tipo da entrevista: xxxxxx</textarea>
+      </div>
+    </div><div class="editor-card card-menu" data-node-id="node_1790687030844_z9fw">
+      <div class="card-header">
+        <span class="badge badge-menu">MENU</span>
+        <div class="card-tools">
+          <button type="button" title="Subir" onclick="moveNode('node_1790687030844_z9fw', -1)">⬆️</button>
+          <button type="button" title="Descer" onclick="moveNode('node_1790687030844_z9fw', 1)">⬇️</button>
+          <button type="button" title="Excluir Bloco" onclick="deleteNode('node_1790687030844_z9fw')">🗑️</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Título / Rótulo do Botão</label>
+        <input type="text" value="Item de Menu" oninput="updateField('node_1790687030844_z9fw', 'title', this.value)">
+      </div>
+      <div class="form-field">
+        <label>Subtítulo / Descrição</label>
+        <textarea rows="2" oninput="updateField('node_1790687030844_z9fw', 'text', this.value)">Agenda 3&lt;br&gt;&lt;br&gt;📅 Data: dd/mm/aaaa   🕐 Horário: hh:mm&lt;br&gt;📋 Tipo da entrevista: xxxxxx</textarea>
+      </div>
+    </div><div class="editor-card card-api" data-node-id="node_1790687080749_33az">
+      <div class="card-header">
+        <span class="badge badge-api">API</span>
+        <div class="card-tools">
+          <button type="button" title="Subir" onclick="moveNode('node_1790687080749_33az', -1)">⬆️</button>
+          <button type="button" title="Descer" onclick="moveNode('node_1790687080749_33az', 1)">⬇️</button>
+          <button type="button" title="Excluir Bloco" onclick="deleteNode('node_1790687080749_33az')">🗑️</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Título / Rótulo do Botão</label>
+        <input type="text" value="Integração API" oninput="updateField('node_1790687080749_33az', 'title', this.value)">
+      </div>
+      <div class="form-field">
+        <label>Subtítulo / Descrição</label>
+        <textarea rows="2" oninput="updateField('node_1790687080749_33az', 'text', this.value)">POST Registra a agenda escolhida e retorna os dados da entrevista</textarea>
+      </div>
+    </div><div class="editor-card card-msg" data-node-id="node_1790687097372_csai">
+      <div class="card-header">
+        <span class="badge badge-msg">MSG</span>
+        <div class="card-tools">
+          <button type="button" title="Subir" onclick="moveNode('node_1790687097372_csai', -1)">⬆️</button>
+          <button type="button" title="Descer" onclick="moveNode('node_1790687097372_csai', 1)">⬇️</button>
+          <button type="button" title="Excluir Bloco" onclick="deleteNode('node_1790687097372_csai')">🗑️</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Título / Rótulo do Botão</label>
+        <input type="text" value="Fraseologia" oninput="updateField('node_1790687097372_csai', 'title', this.value)">
+      </div>
+      <div class="form-field">
+        <label>Subtítulo / Descrição</label>
+        <textarea rows="2" oninput="updateField('node_1790687097372_csai', 'text', this.value)">Entrevista agendada! ✅&lt;br&gt;&lt;br&gt;Confira os detalhes:&lt;br&gt;&lt;br&gt;📋 Tipo da entrevista:&lt;br&gt;📅 Data:   🕐 Horário:&lt;br&gt;🏢 Nome da empresa:&lt;br&gt;📍 Local da entrevista ou link de acesso:&lt;br&gt;👤 Responsável pelo contato:&lt;br&gt;📝 Orientações e documentos necessários:&lt;br&gt;Em caso de dúvidas, acesse o site do CIEE e verifique as informações no ambiente de “Minhas Vagas”.&lt;br&gt;&lt;br&gt;Boa sorte!</textarea>
+      </div>
+    </div><div class="editor-card card-decision" data-node-id="node_1790687110445_cbx8">
+      <div class="card-header">
+        <span class="badge badge-decision">DECISION</span>
+        <div class="card-tools">
+          <button type="button" title="Subir" onclick="moveNode('node_1790687110445_cbx8', -1)">⬆️</button>
+          
+          <button type="button" title="Excluir Bloco" onclick="deleteNode('node_1790687110445_cbx8')">🗑️</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Título / Rótulo do Botão</label>
+        <input type="text" value="Decisão" oninput="updateField('node_1790687110445_cbx8', 'title', this.value)">
+      </div>
+      <div class="form-field">
+        <label>Subtítulo / Descrição</label>
+        <textarea rows="2" oninput="updateField('node_1790687110445_cbx8', 'text', this.value)">Qual critério divide este caminho?</textarea>
+      </div>
+    <div class="branches-editor"><div class="branches-title">
+        <span>Ramos / Caminhos da Decisão:</span>
+        <button type="button" class="btn-xs" onclick="addBranch('node_1790687110445_cbx8')">➕ Novo Ramo</button>
+      </div><div class="branch-box">
+          <div class="branch-box-header">
+            <span class="branch-tag-pill">Caminho:</span>
+            <input type="text" value="Buscar mais vagas" oninput="updateBranchLabel('node_1790687110445_cbx8', 'b_1790687110445_1', this.value)">
+            <button type="button" class="delete-branch-btn" title="Excluir caminho" onclick="deleteBranch('node_1790687110445_cbx8', 'b_1790687110445_1')">❌</button>
+          </div>
+          <div class="branch-children" id="branch-container-b_1790687110445_1"><div class="editor-card card-journey" data-node-id="node_1790687164476_ayix">
+      <div class="card-header">
+        <span class="badge badge-journey">PRÓXIMA JORNADA</span>
+        <div class="card-tools">
+          
+          
+          <button type="button" title="Excluir Bloco" onclick="deleteNode('node_1790687164476_ayix')">🗑️</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Título / Rótulo do Botão</label>
+        <input type="text" value="Próxima Jornada" oninput="updateField('node_1790687164476_ayix', 'title', this.value)">
+      </div>
+      <div class="form-field">
+        <label>Subtítulo / Descrição</label>
+        <textarea rows="2" oninput="updateField('node_1790687164476_ayix', 'text', this.value)">Ir para o outro trecho</textarea>
+      </div>
+    <div class="form-field">
+        <label>🔗 Link / URL de Destino do Fluxo</label>
+        <input type="text" placeholder="ex: fluxo_vagas.html ou #trecho-c" value="fluxo_vagas.html" oninput="updateField('node_1790687164476_ayix', 'url', this.value)">
+        <small style="font-size: 11px; color: var(--soft); display: block; margin-top: 3px;">
+          Insira o nome do outro arquivo HTML (ex: fluxo_b.html) ou um site externo para abrir ao clicar.
+        </small>
+      </div></div></div>
+          
+          <div class="branch-quick-add">
+            <span class="quick-add-sub">Adicionar neste lado:</span>
+            <div class="quick-buttons-sm">
+                <button type="button" class="btn-sm btn-msg" onclick="addNodeToBranch('b_1790687110445_1', 'msg')">+ Fraseologia</button>
+                <button type="button" class="btn-sm btn-api" onclick="addNodeToBranch('b_1790687110445_1', 'api')">+ API</button>
+                <button type="button" class="btn-sm btn-decision" onclick="addNodeToBranch('b_1790687110445_1', 'decision')">+ Decisão</button>
+                <button type="button" class="btn-sm btn-end" onclick="addNodeToBranch('b_1790687110445_1', 'end')">+ Fim do Bot</button>
+                <button type="button" class="btn-sm btn-data" onclick="addNodeToBranch('b_1790687110445_1', 'data')">+ Base Dados</button>
+                <button type="button" class="btn-sm btn-function" onclick="addNodeToBranch('b_1790687110445_1', 'function')">+ Função </button>
+                <button type="button" class="btn-sm btn-metadado" onclick="addNodeToBranch('b_1790687110445_1', 'metadado')">+ Metadado</button>
+                <button type="button" class="btn-sm btn-menu" onclick="addNodeToBranch('b_1790687110445_1', 'menu')">+ Item Menu</button>
+                <button type="button" class="btn-sm btn-forms" onclick="addNodeToBranch('b_1790687110445_1', 'forms')">+ ColmeIA Forms</button>
+                <button type="button" class="btn-sm btn-validation" onclick="addNodeToBranch('b_1790687110445_1', 'validation')">+ Validação</button>
+                <button type="button" class="btn-sm btn-human" onclick="addNodeToBranch('b_1790687110445_1', 'human')">+ Atend. Humano</button>
+                <button type="button" class="btn-sm btn-hub" onclick="addNodeToBranch('b_1790687110445_1', 'hub')">+ Decision Hub</button>
+                <button type="button" class="btn-sm btn-journey" onclick="addNodeToBranch('b_1790687110445_1', 'journey')">+ Próxima Jornada</button>
+            </div>
+          </div>
+        </div><div class="branch-box">
+          <div class="branch-box-header">
+            <span class="branch-tag-pill">Caminho:</span>
+            <input type="text" value="Encerrar" oninput="updateBranchLabel('node_1790687110445_cbx8', 'b_1790687110445_2', this.value)">
+            <button type="button" class="delete-branch-btn" title="Excluir caminho" onclick="deleteBranch('node_1790687110445_cbx8', 'b_1790687110445_2')">❌</button>
+          </div>
+          <div class="branch-children" id="branch-container-b_1790687110445_2"><div class="editor-card card-msg" data-node-id="node_1790687141964_b4uz">
+      <div class="card-header">
+        <span class="badge badge-msg">MSG</span>
+        <div class="card-tools">
+          
+          <button type="button" title="Descer" onclick="moveNode('node_1790687141964_b4uz', 1)">⬇️</button>
+          <button type="button" title="Excluir Bloco" onclick="deleteNode('node_1790687141964_b4uz')">🗑️</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Título / Rótulo do Botão</label>
+        <input type="text" value="Fraseologia" oninput="updateField('node_1790687141964_b4uz', 'title', this.value)">
+      </div>
+      <div class="form-field">
+        <label>Subtítulo / Descrição</label>
+        <textarea rows="2" oninput="updateField('node_1790687141964_b4uz', 'text', this.value)">Agradecemos o seu retorno.&lt;br&gt;O atendimento foi concluído.</textarea>
+      </div>
+    </div><div class="editor-card card-end" data-node-id="sub_1790687110445_2">
+      <div class="card-header">
+        <span class="badge badge-end">END</span>
+        <div class="card-tools">
+          <button type="button" title="Subir" onclick="moveNode('sub_1790687110445_2', -1)">⬆️</button>
+          
+          <button type="button" title="Excluir Bloco" onclick="deleteNode('sub_1790687110445_2')">🗑️</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Título / Rótulo do Botão</label>
+        <input type="text" value="Fim do Bot" oninput="updateField('sub_1790687110445_2', 'title', this.value)">
+      </div>
+      <div class="form-field">
+        <label>Subtítulo / Descrição</label>
+        <textarea rows="2" oninput="updateField('sub_1790687110445_2', 'text', this.value)">Encerrado.</textarea>
+      </div>
+    </div></div>
+          
+          <div class="branch-quick-add">
+            <span class="quick-add-sub">Adicionar neste lado:</span>
+            <div class="quick-buttons-sm">
+                <button type="button" class="btn-sm btn-msg" onclick="addNodeToBranch('b_1790687110445_2', 'msg')">+ Fraseologia</button>
+                <button type="button" class="btn-sm btn-api" onclick="addNodeToBranch('b_1790687110445_2', 'api')">+ API</button>
+                <button type="button" class="btn-sm btn-decision" onclick="addNodeToBranch('b_1790687110445_2', 'decision')">+ Decisão</button>
+                <button type="button" class="btn-sm btn-end" onclick="addNodeToBranch('b_1790687110445_2', 'end')">+ Fim do Bot</button>
+                <button type="button" class="btn-sm btn-data" onclick="addNodeToBranch('b_1790687110445_2', 'data')">+ Base Dados</button>
+                <button type="button" class="btn-sm btn-function" onclick="addNodeToBranch('b_1790687110445_2', 'function')">+ Função </button>
+                <button type="button" class="btn-sm btn-metadado" onclick="addNodeToBranch('b_1790687110445_2', 'metadado')">+ Metadado</button>
+                <button type="button" class="btn-sm btn-menu" onclick="addNodeToBranch('b_1790687110445_2', 'menu')">+ Item Menu</button>
+                <button type="button" class="btn-sm btn-forms" onclick="addNodeToBranch('b_1790687110445_2', 'forms')">+ ColmeIA Forms</button>
+                <button type="button" class="btn-sm btn-validation" onclick="addNodeToBranch('b_1790687110445_2', 'validation')">+ Validação</button>
+                <button type="button" class="btn-sm btn-human" onclick="addNodeToBranch('b_1790687110445_2', 'human')">+ Atend. Humano</button>
+                <button type="button" class="btn-sm btn-hub" onclick="addNodeToBranch('b_1790687110445_2', 'hub')">+ Decision Hub</button>
+                <button type="button" class="btn-sm btn-journey" onclick="addNodeToBranch('b_1790687110445_2', 'journey')">+ Próxima Jornada</button>
+            </div>
+          </div>
+        </div></div></div></div>
+    </aside>
+
+    <!-- Canvas de Visualização em Tempo Real -->
+    <main class="canvas-viewport">
+      <div class="wrap">
+        <div class="stage" id="flowchart-canvas"><div class="node api" data-node-id="node_1790686995220_6a2m"><span class="k">Integração API</span><span class="t">Consulta as agendas disponíveis (até 3 agendas)</span></div><div class="link"></div><div class="node msg" data-node-id="node_1790687014669_ee5o"><strong>Fraseologia</strong><p>Falta pouco! Agora escolha o melhor horário para a sua entrevista.<br><br>Agendas disponíveis:</p></div><div class="link"></div><div class="node menu" data-node-id="node_1790687029381_npla"><strong>Item de Menu</strong><p>Agenda 1<br><br>📅 Data: dd/mm/aaaa   🕐 Horário: hh:mm<br>📋 Tipo da entrevista: xxxxxx</p></div><div class="link"></div><div class="node menu" data-node-id="node_1790687029804_4u0f"><strong>Item de Menu</strong><p>Agenda 2<br><br>📅 Data: dd/mm/aaaa   🕐 Horário: hh:mm<br>📋 Tipo da entrevista: xxxxxx</p></div><div class="link"></div><div class="node menu" data-node-id="node_1790687030844_z9fw"><strong>Item de Menu</strong><p>Agenda 3<br><br>📅 Data: dd/mm/aaaa   🕐 Horário: hh:mm<br>📋 Tipo da entrevista: xxxxxx</p></div><div class="link"></div><div class="node api" data-node-id="node_1790687080749_33az"><span class="k">Integração API</span><span class="t">POST Registra a agenda escolhida e retorna os dados da entrevista</span></div><div class="link"></div><div class="node msg" data-node-id="node_1790687097372_csai"><strong>Fraseologia</strong><p>Entrevista agendada! ✅<br><br>Confira os detalhes:<br><br>📋 Tipo da entrevista:<br>📅 Data:   🕐 Horário:<br>🏢 Nome da empresa:<br>📍 Local da entrevista ou link de acesso:<br>👤 Responsável pelo contato:<br>📝 Orientações e documentos necessários:<br>Em caso de dúvidas, acesse o site do CIEE e verifique as informações no ambiente de “Minhas Vagas”.<br><br>Boa sorte!</p></div><div class="link"></div><div class="fork-group-wrapper"><div class="node decision" data-node-id="node_1790687110445_cbx8"><strong>Decisão</strong><p>Qual critério divide este caminho?</p></div><div class="link"></div><div class="fork"><div class="bar-h" style="width: 50%;"></div><div class="cols"><div class="col"><div class="tag">Buscar mais vagas</div><div class="link"></div><a class="jump" href="fluxo_buscar.html" target="_blank" data-node-id="node_1790687164476_ayix"><strong>Próxima Jornada</strong><span>Buscar mais vagas</span></a></div><div class="col"><div class="tag">Encerrar</div><div class="link"></div><div class="node msg" data-node-id="node_1790687141964_b4uz"><strong>Fraseologia</strong><p>Agradecemos o seu retorno.<br>O atendimento foi concluído.</p></div><div class="link"></div><div class="node end" data-node-id="sub_1790687110445_2"><strong>Fim do Bot</strong><p>Encerrado.</p></div></div></div></div></div></div>
+      </div>
+    </main>
+
+  </div>
+
+  <input type="file" id="import-file" accept=".json" style="display: none;">
+
+  <!-- Script do Motor do Editor -->
+  <script src="static/js/index.js"></script>
+
+
+</body></html>
